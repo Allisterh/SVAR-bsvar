@@ -41,6 +41,7 @@ bsvar <- function(y,
                   control = list(),
                   ...) {
 
+  if(cmdstanr::cmdstan_version() >= "2.30.2") stop("'cmdstanr::cmdstan_version() < 2.30.2' required!\nSee: https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started")
   stan_file <- system.file("bsvar.stan", package = "bsvar")
   mod <- cmdstanr::cmdstan_model(stan_file, cpp_options = list(stan_threads = TRUE))
 

@@ -1,7 +1,7 @@
 
 #' @export
 marginal_likelihood <- function(fit, ...) {
-  if(rstan::stan_version() < 2.26) stop("Unfortunately, 'rstan::stan_version() >= 2.26' required for 'marginal_likelihood' to work.\nSee: https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started")
+  if(rstan::stan_version() < "2.26") stop("Unfortunately, 'rstan::stan_version() >= 2.26' required for 'marginal_likelihood' to work.\nSee: https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started")
   is_cmdstanr_model <- length(fit@stanmodel@model_code) == 0
   if(is_cmdstanr_model) {
     standata <- attributes(fit)$standata
