@@ -32,7 +32,7 @@ Third, make sure your toolchain is set up properly by running the following comm
 library(cmdstanr)
 check_cmdstan_toolchain(fix = TRUE)
 ```
-This should tell you if your toolchain is set up properly and it might also prompt you to accept any automatic fixes if this isn't the case. If you get stuck here, see [this](https://mc-stan.org/cmdstanr/articles/cmdstanr.html) for more thorough instructions. 
+This should tell you if your toolchain is set up properly and it might also prompt you to accept any automatic fixes if this isn't the case. If you get stuck here, see [this](https://mc-stan.org/cmdstanr/articles/cmdstanr.html) or [this](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started) for more thorough instructions. 
 
 Fourth, install a suitable [release](https://github.com/stan-dev/cmdstan/releases) (< 2.30.2) of cmdstan on your computer. For now it is recommended to use version 2.29.2 since this package has been most thoroughly tested with that version. You may install this version of cmdstan on your computer by running the following command (this might take a few minutes):
 
