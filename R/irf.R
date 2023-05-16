@@ -15,7 +15,6 @@ irf <- function(obj,
                 apply_restriction = TRUE,
                 R_progress_bar = TRUE) {
 
-  if(!requireNamespace("fanplot", quietly = TRUE)) stop("Package 'fanplot' required but not installed. To install 'fanplot', you may run:\ninstall.packages('fanplot')\n")
   if(is.null(shock)) stop("Please, specify with respect to which shock to compute the IRFs.")
   if(class(obj) == "stanfit") {
     fit <- obj

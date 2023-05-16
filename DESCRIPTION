@@ -15,7 +15,8 @@ Imports:
     coda,
     gridExtra,
     expm,
-    sgt
+    sgt,
+    fanplot
 RoxygenNote: 7.2.3
 Additional_repositories:
     https://mc-stan.org/r-packages/
