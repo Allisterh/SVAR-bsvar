@@ -1,0 +1,21 @@
+Package: bsvar
+Title: Bayesian estimation of non-Gaussian structural vector autoregressions via Stan
+Version: 0.0.0.9000
+Authors@R: 
+    person("Jetro", "Anttonen", , "jetro.a@gmail.com", role = c("aut", "cre"))
+Description: Tools for Bayesian estimation and statistical identification of 
+    non-Gaussian structural vector autoregressions. 
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+Imports:
+    cmdstanr,
+    rstan (>= 2.18.1),
+    bridgesampling,
+    coda,
+    gridExtra,
+    expm,
+    sgt
+RoxygenNote: 7.2.3
+Additional_repositories:
+    https://mc-stan.org/r-packages/
