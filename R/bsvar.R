@@ -185,7 +185,7 @@ bsvar <- function(y,
     include_B_prior <- TRUE
   } else if(class(B_prior) == "numeric" && length(B_prior) == 2) {
     if(is.na(B_prior[1])) stop("'is.na(B_prior[1]) == TRUE' not allowed.")
-    if(is.na(B_prior[2])) include_hyper_B <- TRUE else include_hyper_B <- FALSE
+    if(is.na(B_prior[2])) include_hyper_B <- 1L else include_hyper_B <- 0L
     if(!include_hyper_B && B_prior[1] == Inf && B_prior[2] == Inf) include_B_prior <- FALSE else include_B_prior <- TRUE
   } else {
     stop("'B_prior' misspecified. Must either be a list or a numeric vector of length two.")
