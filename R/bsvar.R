@@ -41,9 +41,9 @@ bsvar <- function(y,
                   ...) {
 
   # Check the Cmdstan version
-  if(cmdstanr::cmdstan_version() >= "2.32.2" || cmdstanr::cmdstan_version() < "2.29.0") {
+  if(cmdstanr::cmdstan_version() >= "2.32.1" || cmdstanr::cmdstan_version() < "2.29.0") {
     installed_cmdstans <- list.files(cmdstanr::cmdstan_default_install_path())
-    suitable_cmdstans <- paste0("cmdstan-2.", c("32.1", "32.0", "31.0", "30.1", "30.0", "29.2", "29.1", "29.0"))
+    suitable_cmdstans <- paste0("cmdstan-2.", c("32.0", "31.0", "30.1", "30.0", "29.2", "29.1", "29.0"))
     chosen_cmdstan <- NULL
     for(version in suitable_cmdstans) {
       if(version %in% installed_cmdstans) {
@@ -52,7 +52,7 @@ bsvar <- function(y,
       }
     }
     if(is.null(chosen_cmdstan)) {
-      cat("A suitable Cmdstan installation was not found (for now >=2.29.0 but < 2.32.2 required).\n")
+      cat("A suitable Cmdstan installation was not found (for now >=2.29.0 but < 2.32.1 required).\n")
       cat("Would you like me to try and download one for you?\n\n")
       cat("(This might fail if you are using Rstudio! If this indeed fails, then you should exit Rstudio, open R without Rstudio, and run the same command there. ")
       cat("Given you succeed there, you may restart Rstudio and continue there. Also, this may fill your console with all kinds of red and black text, but don't panic! It's all very normal!)\n")
@@ -66,7 +66,7 @@ bsvar <- function(y,
     } else {
       cmdstanr::set_cmdstan_path(file.path(cmdstanr::cmdstan_default_install_path(), chosen_cmdstan))
     }
-    if(cmdstanr::cmdstan_version() >= "2.32.2" || cmdstanr::cmdstan_version() < "2.29.0") {
+    if(cmdstanr::cmdstan_version() >= "2.32.1" || cmdstanr::cmdstan_version() < "2.29.0") {
       stop("Unfortunately I need to stop you right here, as I cannot find a suitable Cmdstan installation, or perhaps I have failed you in some other way. In any case, see https://github.com/jetroant/bsvar for more instructions.")
     }
   }
