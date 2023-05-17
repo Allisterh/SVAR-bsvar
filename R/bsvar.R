@@ -40,7 +40,35 @@ bsvar <- function(y,
                   control = list(),
                   ...) {
 
-  if(cmdstanr::cmdstan_version() >= "2.30.2") stop("'cmdstanr::cmdstan_version() < 2.30.2' required!\nSee instructions here: https://github.com/jetroant/bsvar")
+  # Check the Cmdstan version
+  if(cmdstanr::cmdstan_version() >= "2.30.2") {
+    installed_cmdstans <- list.files(cmdstanr::cmdstan_default_install_path())
+    suitable_cmdstans <- paste0("cmdstan-2.", c("32.1", "32.0", "31.0", "30.1", "30.0", "29.2", "29.1", "29.0"))
+    chosen_cmdstan <- NULL
+    for(version in suitable_cmdstans) {
+      if(version %in% installed_cmdstans) {
+        chosen_cmdstan <- version
+        break
+      }
+    }
+    if(is.null(chosen_cmdstan)) {
+      cat("A suitable Cmdstan installation was not found (for now >=2.29.0 but 2.32.2 required).\n")
+      cat("Would you like me to try and download one for you?\n")
+      ans <- readline(prompt = "(y/n): ")
+      if(ans == "y") {
+        try({
+          chosen_cmdstan <- "2.29.2" # bsvar has been most thoroughly tested with 2.29.2
+          cmdstanr::install_cmdstan(version = chosen_cmdstan)
+          cmdstanr::set_cmdstan_path(file.path(cmdstanr::cmdstan_default_install_path(), chosen_cmdstan))
+        })
+      }
+    } else {
+      cmdstanr::set_cmdstan_path(file.path(cmdstanr::cmdstan_default_install_path(), chosen_cmdstan))
+    }
+    if(cmdstanr::cmdstan_version() >= "2.30.2") {
+      stop("Unfortunately I need to stop you right here, as I cannot find a suitable Cmdstan installation.\nSee https://github.com/jetroant/bsvarinstructions for more instructions.")
+    }
+  }
   stan_file <- system.file("bsvar.stan", package = "bsvar")
   mod <- cmdstanr::cmdstan_model(stan_file, cpp_options = list(stan_threads = TRUE))
 
