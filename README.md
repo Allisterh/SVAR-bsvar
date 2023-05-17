@@ -56,7 +56,7 @@ These should both point to the same version **(not 2.30.2 or above)** of cmdstan
 When you have [cmdstanr](https://mc-stan.org/cmdstanr/) all set up you are ready to install the package! Simply run the following commands: 
 
 ```
-!("devtools" %in% installed.packages()) install.packages("devtools")
+if(!("devtools" %in% installed.packages())) install.packages("devtools")
 devtools::install_github("jetroant/bsvar")
 ```
 
