@@ -41,7 +41,7 @@ bsvar <- function(y,
                   ...) {
 
   # Check the Cmdstan version
-  if(cmdstanr::cmdstan_version() >= "2.30.2" || cmdstanr::cmdstan_version() < "2.29.0") {
+  if(cmdstanr::cmdstan_version() >= "2.32.2" || cmdstanr::cmdstan_version() < "2.29.0") {
     installed_cmdstans <- list.files(cmdstanr::cmdstan_default_install_path())
     suitable_cmdstans <- paste0("cmdstan-2.", c("32.1", "32.0", "31.0", "30.1", "30.0", "29.2", "29.1", "29.0"))
     chosen_cmdstan <- NULL
@@ -66,7 +66,7 @@ bsvar <- function(y,
     } else {
       cmdstanr::set_cmdstan_path(file.path(cmdstanr::cmdstan_default_install_path(), chosen_cmdstan))
     }
-    if(cmdstanr::cmdstan_version() >= "2.30.2" || cmdstanr::cmdstan_version() < "2.29.0") {
+    if(cmdstanr::cmdstan_version() >= "2.32.2" || cmdstanr::cmdstan_version() < "2.29.0") {
       stop("Unfortunately I need to stop you right here, as I cannot find a suitable Cmdstan installation, or perhaps I have failed you in some other way. In any case, see https://github.com/jetroant/bsvar for more instructions.")
     }
   }
