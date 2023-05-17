@@ -162,6 +162,7 @@ narrative_sign_probs <- function(decomp_obj,
   ret
 }
 
+#' @export
 plot_shock_volatility <- function(decomp, first_period = 0, freq = 1, y_labels = NULL, probs = NULL, fit = NULL, controls = list()) {
   if(!is.null(fit)) {
     y <- attributes(fit)$original_y
