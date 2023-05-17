@@ -37,7 +37,6 @@ bsvar <- function(y,
                   parallel_chains = ifelse(chains <= 4, chains, 4),
                   threads_per_chain = 1,
                   max_treedepth = 15,
-                  control_rstan = list("max_treedepth" = max_treedepth),
                   control = list(),
                   ...) {
 
@@ -209,6 +208,8 @@ bsvar <- function(y,
         if(sum(B_prior[2] <= 0 || B_prior[1] <= 0) > 0) stop("'B_prior' misspecified, diagonal of prior covariance matrix allows for only positive values.")
       }
       B_prior_mean <- c(diag(M))
+      if(sum(B_pos_res[,1]) > 0) B_prior_mean[which(B_pos_res[,1] == 1)] <- 1
+      if(sum(B_neg_res[,1]) > 0) B_prior_mean[which(B_neg_res[,1] == 1)] <- -1
       B_prior_cov <- diag(M^2)
       diag(B_prior_cov)[diag(M) == 1] <- B_prior[1]
       diag(B_prior_cov)[diag(M) == 0] <- B_prior[2]

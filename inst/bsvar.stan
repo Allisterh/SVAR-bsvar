@@ -642,7 +642,7 @@ model {
               if (B_pos_res[i, 1] == 1) {
                 target += lognormal_lpdf(Bvec[i] | B_prior_cov[i,i] + log(B_prior_mean[i]), sqrt(B_prior_cov[i,i])); // Log-normal with mode equal to 'B_prior_mean'
               } else if (B_neg_res[i, 1] == 1) {
-                target += lognormal_lpdf(-Bvec[i] | B_prior_cov[i,i] + log(B_prior_mean[i]), sqrt(B_prior_cov[i,i])); // Log-normal with mode equal to 'B_prior_mean'
+                target += lognormal_lpdf(-Bvec[i] | B_prior_cov[i,i] + log(-B_prior_mean[i]), sqrt(B_prior_cov[i,i])); // Log-normal with mode equal to 'B_prior_mean'
               } else {
                 if (B_zero_res[i, 1] == 0) target += normal_lpdf(Bvec[i] | B_prior_mean[i], (sqrt(B_prior_cov[i,i])) );
               }
