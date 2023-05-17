@@ -32,7 +32,7 @@ shock_decomp <- function(obj,
   yy <- attributes(fit)$standata$y
   xx <- attributes(fit)$standata$x
   if(attributes(fit)$standata$include_constant == TRUE) {
-    const <- rstan::extract(fit, pars = "constant")[[1]]
+    const <- extract(fit, pars = "constant", apply_restriction = apply_restriction)[[1]]
   } else {
     const <- matrix(0, N, M)
   }
@@ -40,12 +40,14 @@ shock_decomp <- function(obj,
   decomp$residuals <- array(NA, dim = c(N, nrow(yy), ncol(yy)))
   decomp$shocks <- array(NA, dim = c(N, nrow(yy), ncol(yy)))
   include_garch <- attributes(fit)$standata$include_garch
+  garch_group_mat <- attributes(fit)$standata$garch_group_mat
+  eta_form <- attributes(fit)$standata$garch_eta_form
   if(include_garch == TRUE) {
     fix_moments <- attributes(fit)$standata$fix_moments
-    garch_c <- rstan::extract(fit, pars = "garch_c")[[1]]
-    garch_C <- rstan::extract(fit, pars = "garch_C")[[1]]
-    garch_D <- rstan::extract(fit, pars = "garch_D")[[1]]
-    decomp$volatility <- array(NA, dim = c(N, nrow(yy), ncol(yy)))
+    garch_c <- extract(fit, pars = "garch_c", apply_restriction = apply_restriction)[[1]]
+    garch_C <- extract(fit, pars = "garch_C", apply_restriction = apply_restriction)[[1]]
+    garch_D <- extract(fit, pars = "garch_D", apply_restriction = apply_restriction)[[1]]
+    decomp$volatility <- array(NA, dim = c(N, nrow(yy), ncol(garch_c)))
     decomp$volatility[,1,] = 1
     decomp$shocks_raw <- array(NA, dim = c(N, nrow(yy), ncol(yy)))
   }
@@ -71,10 +73,31 @@ shock_decomp <- function(obj,
       garch_ci <- garch_c[i,]
       garch_Ci <- garch_C[i,]
       garch_Di <- garch_D[i,,]
-      for(j in 2:nrow(yy)) {
-        decomp$volatility[i,j,] <- sqrt( garch_ci + garch_Ci * decomp$volatility[i,j-1,]^2 + garch_Di %*% e[j-1,]^2 )
-        decomp$shocks_raw[i,j,] <- e[j,] / decomp$volatility[i,j,]
+      if(length(garch_group_mat) == 0) {
+        for(j in 2:nrow(yy)) {
+          if(eta_form) {
+            decomp$volatility[i,j,] <- sqrt( garch_ci + garch_Ci * decomp$volatility[i,j-1,]^2 + garch_Di %*% e[j-1,]^2 )
+            decomp$shocks_raw[i,j,] <- e[j,] / decomp$volatility[i,j,]
+          } else {
+            decomp$volatility[i,j,] <- sqrt( garch_ci + garch_Ci * decomp$volatility[i,j-1,]^2 + garch_Di %*% (e[j-1,] * decomp$volatility[i,j-1,])^2 )
+            decomp$shocks_raw[i,j,] <- e[j,] / decomp$volatility[i,j,]
+          }
+        }
+      } else {
+        for(j in 2:nrow(yy)) {
+          mean_last_e_squared <- rep(NA, ncol(garch_group_mat))
+          if(eta_form) {
+            for(h in 1:ncol(garch_group_mat)) mean_last_e_squared[h] <- mean(e[j-1, which(garch_group_mat[,h] == 1)]^2)
+            decomp$volatility[i,j,] <- sqrt( garch_ci + garch_Ci * decomp$volatility[i,j-1,]^2 + garch_Di %*% mean_last_e_squared)
+            for(h in 1:ncol(garch_group_mat)) decomp$shocks_raw[i,j,which(garch_group_mat[,h] == 1)] <- e[j,which(garch_group_mat[,h] == 1)] / decomp$volatility[i,j,h]
+          } else {
+            for(h in 1:ncol(garch_group_mat)) mean_last_e_squared[h] <- mean((e[j-1, which(garch_group_mat[,h] == 1)] * decomp$volatility[i,j-1,h])^2)
+            decomp$volatility[i,j,] <- sqrt( garch_ci + garch_Ci * decomp$volatility[i,j-1,]^2 + garch_Di %*% mean_last_e_squared)
+            for(h in 1:ncol(garch_group_mat)) decomp$shocks_raw[i,j,which(garch_group_mat[,h] == 1)] <- e[j,which(garch_group_mat[,h] == 1)] / decomp$volatility[i,j,h]
+          }
+        }
       }
+
     }
     if(progress_bar) setTxtProgressBar(pb, i)
   }
