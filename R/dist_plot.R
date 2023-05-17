@@ -29,7 +29,7 @@ dist_plot <- function(fit,
   fit_draws = as.data.frame(fit)
   res <- attributes(fit)$restriction
   if(apply_restriction && !is.null(res)) {
-    N <- nrow(fit_draws) - length(res)
+    N <- nrow(fit_draws) - sum(res)
     if(sgt_len_vec[1] > 0) fit_draws[1:N, grep("lambda", colnames(fit_draws))] <- extract(fit, apply_restriction = apply_restriction)$lambda
     if(sgt_len_vec[2] > 0 || sgt_len_vec[3] > 0) fit_draws[1:N, grep("pq", colnames(fit_draws))] <- extract(fit, apply_restriction = apply_restriction)$pq
     fit_draws <- fit_draws[1:N,]

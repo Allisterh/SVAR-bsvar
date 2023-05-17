@@ -18,20 +18,14 @@ irf <- function(obj,
   if(is.null(shock)) stop("Please, specify with respect to which shock to compute the IRFs.")
   if(class(obj) == "stanfit") {
     fit <- obj
-    A <- rstan::extract(fit, pars = "A")[[1]]
+    A <- extract(fit, pars = "A", apply_restriction = apply_restriction)[[1]]
     if(attributes(fit)$standata$B_inverse) {
-      B <- rstan::extract(fit, pars = "B_inv")[[1]]
+      B <- extract(fit, pars = "B_inv", apply_restriction = apply_restriction)[[1]]
     } else {
-      B <- rstan::extract(fit, pars = "B")[[1]]
+      B <- extract(fit, pars = "B", apply_restriction = apply_restriction)[[1]]
     }
     N <- dim(A)[1]
     M <- dim(B)[2]
-    if(apply_restriction) res <- attributes(obj)$restriction else res <- NULL
-    if(!is.null(res)) {
-      A <- A[-res,,]
-      B <- B[-res,,]
-      N <- N - length(res)
-    }
     if(!is.null(sub_N)) {
       if(sub_N < N) {
         sub_i <- sample.int(N, sub_N, replace = TRUE)
