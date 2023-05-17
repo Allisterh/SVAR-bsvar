@@ -8,7 +8,7 @@ Bayesian estimation of non-Gaussian structural vector autoregressions (SVARs) vi
 
 You must have [cmdstanr](https://mc-stan.org/cmdstanr/) installed (and properly set-up) on your computer before installing the package. However...
 
-**IMPORTANT: For now, cmdstan versions 2.30.2 and up do not work with the package, but you must use older release.** 
+**IMPORTANT: For now, cmdstan versions 2.32.1 and up do not work with the package, so you must use older release (but not older than 2.29.0)** 
 
 Thus, in setting up [cmdstanr](https://mc-stan.org/cmdstanr/) you may follow the instructions in [here](https://mc-stan.org/cmdstanr/articles/cmdstanr.html), but with the exception of **NOT** installing the latest version of cmdstan. If you're getting confused and just came here for an easy-to-use R-package, don't you worry, you may just follow the instructions below and soon all these unpleasant technicalities will be over and done with. 
 
@@ -22,7 +22,7 @@ Second, as required by [cmdstanr](https://mc-stan.org/cmdstanr/), make sure you 
 
 **On Windows:** This means that you have to have Rtools installed on your computer. This is not an R-package and you may download Rtools installer for instance from [here](https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html).
 
-**On Mac:** This means that you must probably have at least Xcode command line tools installed on your computer. If you are not sure, the prompt in the next step should tell you if need to do something.
+**On Mac:** This means that you must probably have at least Xcode command line tools installed on your computer. If you are not sure, the prompt in the next step should tell you if you need to do something.
 
 **On Linux:** You probably already have what you need.
 
@@ -32,9 +32,9 @@ Third, make sure your toolchain is set up properly by running the following comm
 library(cmdstanr)
 check_cmdstan_toolchain(fix = TRUE)
 ```
-This should tell you if your toolchain is set up properly and it might also prompt you to accept any automatic fixes if this isn't the case. If you get stuck here, see [this](https://mc-stan.org/cmdstanr/articles/cmdstanr.html) or [this](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started) for more thorough instructions. 
+This should tell you if your toolchain is set up properly and it might also prompt you to accept any automatic fixes if this isn't the case. If you get stuck here, see [this](https://mc-stan.org/cmdstanr/articles/cmdstanr.html) or [this](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started) for more thorough instructions (or you can just carry on and hope for the best).
 
-Fourth, install a suitable [release](https://github.com/stan-dev/cmdstan/releases) (< 2.30.2) of cmdstan on your computer. For now it is recommended to use version 2.29.2 since this package has been most thoroughly tested with that version. You may install this version of cmdstan on your computer by running the following command (this might take a few minutes):
+Fourth, install a suitable [release](https://github.com/stan-dev/cmdstan/releases) (< 2.32.1) of cmdstan on your computer. For now it is recommended to use version 2.29.2 since this package has been most thoroughly tested with that version. You may install this version of cmdstan on your computer by running the following command (this might take a few minutes):
 
 ```
 install_cmdstan(version = "2.29.2")
@@ -49,7 +49,7 @@ cmdstan_version()
 cmdstan_path()
 ```
 
-These should both point to the same version **(not 2.30.2 or above)** of cmdstan. Problems with the package may still persist if the installation of version 2.30.2 (or above) still exists on your computer (for example, if you have earlier or accidentaly installed it). In such case, you may navigate to the location of cmdstan installations as given by `cmdstan_path()` and manually remove the folder cmdstan-2.30.2 (or something similar). 
+These should both point to the same version **(not 2.32.1 or above)** of cmdstan. Problems with the package may still persist if the installation of version 2.30.2 (or above) still exists on your computer (for example, if you have earlier or accidentaly installed it), although this shouldn't be the case. If problems however persist, you may navigate to the location of cmdstan installations as given by `cmdstan_path()` and manually remove the folder(s) cmdstan-2.32.1, cmdstan-2.32.2... (or something similar). 
 
 ### Installing the package 
 
@@ -60,7 +60,7 @@ if(!("devtools" %in% installed.packages())) install.packages("devtools")
 devtools::install_github("jetroant/bsvar")
 ```
 
-The installation of the package itself should be a breeze and only take a few minutes, however if there are a lot of dependencies to be installed (that is, you do not already have other R-packages that are needed for this package to work installed on your computer) this might take a few minutes.
+The installation of the package itself should be a breeze and only take a few minutes, however if there are a lot of dependencies to be installed (that is, if you do not already have other R-packages that are needed for this package to work installed on your computer) this might take a few minutes.
 
 ### Test drive 
 
