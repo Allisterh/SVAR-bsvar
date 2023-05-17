@@ -59,8 +59,7 @@ bsvar <- function(y,
       ans <- readline(prompt = "(y/n): ")
       if(ans == "y") {
         try({
-          chosen_cmdstan <- paste0("cmdstan-2.", "29.2") # bsvar has been most thoroughly tested with 2.29.2
-          cmdstanr::install_cmdstan(version = chosen_cmdstan)
+          cmdstanr::install_cmdstan(version = "2.29.2") # bsvar has been most thoroughly tested with 2.29.2
           cmdstanr::set_cmdstan_path(file.path(cmdstanr::cmdstan_default_install_path(), chosen_cmdstan))
         })
       }
