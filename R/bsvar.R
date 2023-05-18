@@ -683,8 +683,10 @@ bsvar <- function(y,
     init_fun <- function() {
       list2env(standata, envir = environment())
       list2env(inits, envir = environment())
-      if(A_zero_res[length(A_zero_res)] > 0) {
-        for(i in 1:nrow(A_zero_res)) if(A_zero_res[i, 1] == 1) A[i] <- NA
+      if(lags > 0) {
+        if(A_zero_res[length(A_zero_res)] > 0) {
+          for(i in 1:nrow(A_zero_res)) if(A_zero_res[i, 1] == 1) A[i] <- NA
+        }
       }
       if(B_zero_res[length(B_zero_res)] > 0) {
         for(i in 1:nrow(B_zero_res)) if(B_zero_res[i, 1] == 1) B[i] <- NA
