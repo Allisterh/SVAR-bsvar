@@ -16,7 +16,9 @@ Imports:
     gridExtra,
     expm,
     sgt,
-    fanplot
+    fanplot,
+    mathjaxr
 RoxygenNote: 7.2.3
+RdMacros: mathjaxr
 Additional_repositories:
     https://mc-stan.org/r-packages/
