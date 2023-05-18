@@ -1,6 +1,6 @@
 # bsvar 
 
-Bayesian estimation of non-Gaussian structural vector autoregressions (SVARs) via Stan. More specifically, this package aims at making Bayesian estimation of statistically identified non-Gaussian SVARs as easy as possible by providing an easy-to-use interface to [cmdstanr](https://mc-stan.org/cmdstanr/) along with various ready-made tools for the analysis of SVARs. 
+Bayesian estimation of non-Gaussian structural vector autoregressions (SVARs) via Stan. More specifically, this R-package aims at making Bayesian estimation of statistically identified non-Gaussian SVARs as easy as possible by providing an easy-to-use interface to [cmdstanr](https://mc-stan.org/cmdstanr/) along with various ready-made tools for the analysis of SVARs. 
 
 ## Getting Started
 
@@ -10,13 +10,15 @@ You must have [cmdstanr](https://mc-stan.org/cmdstanr/) installed (and properly 
 
 **IMPORTANT: For now, cmdstan versions 2.32.1 and up do not work with the package, so you must use older release (but not older than 2.29.0)** 
 
-Thus, in setting up [cmdstanr](https://mc-stan.org/cmdstanr/) you may follow the instructions in [here](https://mc-stan.org/cmdstanr/articles/cmdstanr.html), but with the exception of **NOT** installing the latest version of cmdstan. If you're getting confused and just came here for an easy-to-use R-package, don't you worry, you may just follow the instructions below and soon all these unpleasant technicalities will be over and done with. 
+Thus, in setting up [cmdstanr](https://mc-stan.org/cmdstanr/) you may follow the instructions in [here](https://mc-stan.org/cmdstanr/articles/cmdstanr.html), but with the exception of **NOT** installing the latest version of cmdstan. If you're getting confused and just came here for an easy-to-use R-package, don't worry, just follow the instructions below and soon all these unpleasant technicalities will be over and done with. 
 
-First, open a fresh R session and install [cmdstanr](https://mc-stan.org/cmdstanr/) R-package by running the following command
+
+First, if you don't have [cmdstanr](https://mc-stan.org/cmdstanr/) R-package already installed, open a fresh R session and install [cmdstanr](https://mc-stan.org/cmdstanr/) by running the following command
 
 ```
 install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
 ```
+
 
 Second, as required by [cmdstanr](https://mc-stan.org/cmdstanr/), make sure you have a suitable C++ toolchain installed on your computer. What this means in practice? 
 
@@ -26,6 +28,7 @@ Second, as required by [cmdstanr](https://mc-stan.org/cmdstanr/), make sure you 
 
 **On Linux:** You probably already have what you need.
 
+
 Third, make sure your toolchain is set up properly by running the following commands:
 
 ```
@@ -34,22 +37,17 @@ check_cmdstan_toolchain(fix = TRUE)
 ```
 This should tell you if your toolchain is set up properly and it might also prompt you to accept any automatic fixes if this isn't the case. If you get stuck here, see [this](https://mc-stan.org/cmdstanr/articles/cmdstanr.html) or [this](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started) for more thorough instructions (or you can just carry on and hope for the best).
 
-Fourth, install a suitable [release](https://github.com/stan-dev/cmdstan/releases) (< 2.32.1) of cmdstan on your computer. For now it is recommended to use version 2.29.2 since this package has been most thoroughly tested with that version. You may install this version of cmdstan on your computer by running the following command (this might take a few minutes):
+
+Fourth, install a suitable [release](https://github.com/stan-dev/cmdstan/releases) (< 2.32.1) of cmdstan on your computer (not the [cmdstanr](https://mc-stan.org/cmdstanr/) R-package we have already installed!). For now it is recommended to use version 2.29.2 since this package has been most thoroughly tested with that version. You may install this version of cmdstan on your computer by running the following command (this might take a few minutes):
 
 ```
 install_cmdstan(version = "2.29.2")
 ```
 
-**NOTE:** If the above command fails for reasons unknown when using Rstudio, try running the command without Rstudio. You can get back to Rstudio after succesfully installing a suitable version of cmdstan.
+**NOTE: If the above command fails when using Rstudio, try running the command without Rstudio. You can get back to Rstudio after succesfully installing a suitable version of cmdstan.**
 
-Now [cmdstanr](https://mc-stan.org/cmdstanr/) should be all set up! However, by running the following commands you can make sure that the correct version of cmdstan is used: 
+Now [cmdstanr](https://mc-stan.org/cmdstanr/) should be all set up! Even if you have an installation of the wrong cmdstan version (<2.29.0 or >2.32.0) on your computer (e.g. you have installed it earlier or by accident), `bsvar()` should find the right version and use that. However, if problems do persist, you may navigate to the location of cmdstan installations as given by `cmdstan_path()` and manually remove the folder(s) cmdstan-2.32.1, cmdstan-2.32.2... (or something similar) and see if that helps.
 
-```
-cmdstan_version()
-cmdstan_path()
-```
-
-These should both point to the same version **(not 2.32.1 or above)** of cmdstan. Problems with the package may still persist if the installation of version 2.30.2 (or above) still exists on your computer (for example, if you have earlier or accidentaly installed it), although this shouldn't be the case. If problems however persist, you may navigate to the location of cmdstan installations as given by `cmdstan_path()` and manually remove the folder(s) cmdstan-2.32.1, cmdstan-2.32.2... (or something similar). 
 
 ### Installing the package 
 
@@ -83,7 +81,7 @@ Finally, a few words regarding the marginal likelihood estimation via the excell
 ```
 marginal_likelihood(fit)
 ```
-`marginal_likelihood()` is a wrapper for `bridgesampling::bridge_sampler()` that takes care of some pesky practicalities. Providing the `stanfit` object outputted by `bsvar()` directly to `bridgesampling::bridge_sampler()` will not work. This is mainly because (for now) [bridgesampling](https://github.com/quentingronau/bridgesampling) only supports Stan models built with [rstan](https://mc-stan.org/users/interfaces/rstan), not with [cmdstanr](https://mc-stan.org/cmdstanr/). To this end, `marginal_likelihood()` recompiles an [rstan](https://mc-stan.org/users/interfaces/rstan) program based on the same code as the original [cmdstanr](https://mc-stan.org/cmdstanr/) program used for sampling from the posterior. For now, this needs to be once every session (annoying, I know!), so calling `marginal_likelihood()` for the first time in a session takes a few minutes as opposed to seconds later on. Also, very importantly, calling `marginal_likelihood()` requires an installation of `rstan (2.26.0)` or higher. You can check the version of your installation by running `rstan::stan_version()`. Check the instructions for upgrading your [rstan](https://mc-stan.org/users/interfaces/rstan) installation [here](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started).
+`marginal_likelihood()` is a wrapper for `bridgesampling::bridge_sampler()` that takes care of some pesky practicalities. Providing the `stanfit` object outputted by `bsvar()` directly to `bridgesampling::bridge_sampler()` will not work. This is mainly because (for now) [bridgesampling](https://github.com/quentingronau/bridgesampling) only supports Stan models built with [rstan](https://mc-stan.org/users/interfaces/rstan), not with [cmdstanr](https://mc-stan.org/cmdstanr/). To this end, `marginal_likelihood()` recompiles an [rstan](https://mc-stan.org/users/interfaces/rstan) program based on the same code as the original [cmdstanr](https://mc-stan.org/cmdstanr/) program used for sampling from the posterior. For now, this needs to be once every session (annoying, I know!), so calling `marginal_likelihood()` for the first time in a session may take a few minutes as opposed to seconds later on. Also, very importantly, calling `marginal_likelihood()` requires an installation of `rstan 2.26.0` or higher. You can check the version of your installation by running `rstan::stan_version()`. Check the instructions for updating your [rstan](https://mc-stan.org/users/interfaces/rstan) installation [here](https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started).
 
 
 
