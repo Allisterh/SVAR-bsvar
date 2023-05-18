@@ -4,7 +4,7 @@
 #'
 #' @docType package
 #' @name bsvar-package
-#' @aliases bsvar
+#' @aliases bsvar-package
 #'
 #' @references
 #' Stan Development Team (NA). RStan: the R interface to Stan. R package version 2.26.11. https://mc-stan.org

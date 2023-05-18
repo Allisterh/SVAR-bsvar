@@ -3,7 +3,6 @@
 \docType{package}
 \name{bsvar-package}
 \alias{bsvar-package}
-\alias{bsvar}
 \title{The 'bsvar' package.}
 \description{
 A DESCRIPTION OF THE PACKAGE
