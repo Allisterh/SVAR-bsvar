@@ -251,20 +251,20 @@ bsvar <- function(y,
   ### Zero restrictions on autoregressive parameters ###
   ######################################################
 
-  if(is.null(A_restrictions)) {
-    A_restrictions <- matrix(NA, nrow = M * lags, ncol = M)
+  if(is.null(A_restrictions) || lags == 0) {
+    A_zero_res <- matrix(0, nrow = M * M * lags, ncol = 2)
   } else {
     not_NA_Ar <- A_restrictions[!is.na(A_restrictions)]
     if(length(not_NA_Ar) > 0) {
       if(nrow(A_restrictions) != M * lags || ncol(A_restrictions) != M) stop("'A_restrictions' must be a 'ncol(y) * lags' times 'ncol(y)' square matrix.")
       if(sum(not_NA_Ar == 0) != length(not_NA_Ar)) stop("Allowed values in 'A_restrictions' are NA and 0.")
     }
+    Azr <- A_restrictions
+    Azr[Azr == 0] <- 1
+    Azr[is.na(Azr)] <- 0
+    Azr <- c(Azr)
+    A_zero_res <- cbind(Azr, cumsum(Azr))
   }
-  Azr <- A_restrictions
-  Azr[Azr == 0] <- 1
-  Azr[is.na(Azr)] <- 0
-  Azr <- c(Azr)
-  A_zero_res <- cbind(Azr, cumsum(Azr))
 
   #######################
   ### Minnesota prior ###
@@ -477,7 +477,7 @@ bsvar <- function(y,
   if(is.null(garch_control$garch_prior)) garch_control$garch_prior <- 10/12
   if(is.null(garch_control$garch_dep)) garch_control$garch_dep <- FALSE
   if(is.null(garch_control$garch_shrinkage)) garch_control$garch_shrinkage <- 1
-  if(is.null(garch_control$garch_groups)) include_garch_groups <- FALSE else include_garch_groups <- TRUE
+  if(is.null(garch_control$garch_groups) || !include_garch) include_garch_groups <- FALSE else include_garch_groups <- TRUE
   if(is.null(garch_control$garch_eta_form)) garch_control$garch_eta_form <- FALSE
 
   if(garch_control$garch_prior <= 0 || garch_control$garch_prior >= 1) {
@@ -608,7 +608,7 @@ bsvar <- function(y,
                    B_prior_cov_diagonal = B_prior_cov_diagonal,
 
                    # Restrictions on A and the Minnesota prior
-                   A_zero_res_num = A_zero_res[length(A_zero_res)],
+                   A_zero_res_num = ifelse(lags > 0, A_zero_res[length(A_zero_res)], 0),
                    A_zero_res = as.array(A_zero_res),
                    include_minnesota = include_minnesota,
                    hyper_len_vec = as.array(hyper_free),

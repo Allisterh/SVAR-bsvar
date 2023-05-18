@@ -684,6 +684,14 @@ generated quantities {
   matrix[M, M] B_inv;
   matrix[N + lags, number_of_quarterly] yq;
   vector[prior_elast_num] elasticity;
+  matrix[N, M] shocks;
+  matrix[N, (include_garch_groups == 1 ? garch_group_num : M)] volatility;
+  if(include_garch_groups == 1) {
+    volatility = rep_matrix(1.0, N, garch_group_num);
+  } else {
+    volatility = rep_matrix(1.0, N, M);
+  }
+
   if (soc_free == 1) hyper_soc_exp = exp(hyper_soc);
   if (dio_free == 1) hyper_dio_exp = exp(hyper_dio);
   if (sgt_len_vec[2] == M) {
@@ -697,6 +705,7 @@ generated quantities {
   if (sgt_len_vec[2] == M && sgt_len_vec[3] == 0) pq = p * exp(sgt_fixed[3]);
   if (sgt_len_vec[2] == 0 && sgt_len_vec[3] == 0) pq = rep_vector(exp(sgt_fixed[2]) * exp(sgt_fixed[3]), pq_len);
   B_inv = inverse(B);
+
   if (missing_data_count > 0) {
     matrix[N + lags, M] y_new = y_raw;
     for(i in 1:missing_data_count) {
@@ -719,6 +728,7 @@ generated quantities {
       }
     }
   }
+
   if (prior_elast_num > 0) {
     vector[M*M] Bvec;
     for(i in 1:M) Bvec[((i-1)*M+1):(i*M)] = col(B, i);
@@ -728,6 +738,107 @@ generated quantities {
         real denumerator = Bvec[prior_elast_ind[prior_elast_count, 2]];
         elasticity[prior_elast_count] = Bvec[i] / denumerator;
         prior_elast_count += 1;
+      }
+    }
+  }
+
+  if (N > 0) {
+    matrix[N, M] xA;
+    matrix[N, M] cmat;
+    vector[M] cvec;
+    vector[(include_garch_groups == 1 ? garch_group_num : M * include_garch)] garch_v;
+    vector[include_vol_breaks * M] vol_v;
+    int vol_break_count = 1;
+    matrix[N + lags, M + M*lags] yx_raw;
+    matrix[N + lags, M] y_raw_new;
+    matrix[N, M] yy;
+    matrix[N, M*lags] xx;
+
+    if (include_constant == 1) {
+      cvec = constant;
+    } else {
+      cvec = rep_vector(0, M);
+    }
+    cmat = rep_vector(1, N) * cvec';
+    if(missing_data_count == 0 && number_of_quarterly == 0) {
+      if (lags > 0) {
+        xA = x * A;
+      } else {
+        xA = rep_matrix(0, N, M);
+      }
+      if (B_inverse == 0) shocks = (y - cmat - xA) / B';
+      if (B_inverse == 1) shocks = (y - cmat - xA) * B';
+    } else {
+      if(number_of_quarterly > 0) {
+        y_raw_new = rebuild_y_raw(y_raw, quarterly_binary, quarterly_sums, monthly_raw, M, (N + lags) %/% 3);
+      } else {
+        y_raw_new = y_raw;
+      }
+      yx_raw = build_yx(y_raw_new, lags, missing_data, missing_data_location, missing_data_count, N, M);
+      yy = yx_raw[(lags + 1):(N + lags), 1:M];
+      xx = yx_raw[(lags + 1):(N + lags), (M + 1):(M + M*lags)];
+      if (lags > 0) {
+        xA = xx * A;
+      } else {
+        xA = rep_matrix(0, N, M);
+      }
+      if (B_inverse == 0) shocks = (yy - cmat - xA) / B';
+      if (B_inverse == 1) shocks = (yy - cmat - xA) * B';
+    }
+    if (include_garch > 0) {
+      if (include_garch_groups == 0) garch_v = rep_vector(1, M); else garch_v = rep_vector(1, garch_group_num);
+      volatility[1,:] = garch_v';
+      if (garch_dependence == 1) {
+        for(i in 2:N) {
+          if(garch_eta_form == 0) garch_v = sqrt(garch_c + garch_C .* (garch_v .* garch_v) + garch_D * ( (shocks[i-1,:] .* garch_v') .* (shocks[i-1,:] .* garch_v') )' );
+          if(garch_eta_form == 1) garch_v = sqrt(garch_c + garch_C .* (garch_v .* garch_v) + garch_D * (shocks[i-1,:] .* shocks[i-1,:])' );
+          shocks[i,:] = shocks[i,:] ./ garch_v';
+          volatility[i,:] = garch_v';
+        }
+      } else {
+        if(include_garch_groups == 0) {
+          for(j in 1:M) {
+              for(i in 2:N) {
+                if(garch_eta_form == 0) garch_v[j] = sqrt(garch_param[j][1] + garch_param[j][2] * garch_v[j]^2 + garch_param[j][3] * (shocks[i-1,j] * garch_v[j])^2);
+                if(garch_eta_form == 1) garch_v[j] = sqrt(garch_param[j][1] + garch_param[j][2] * garch_v[j]^2 + garch_param[j][3] * shocks[i-1,j]^2);
+                shocks[i,j] = shocks[i,j] / garch_v[j];
+                volatility[i,:] = garch_v';
+              }
+            }
+        } else {
+          for(i in 2:N) {
+            for(g in 1:garch_group_num) {
+              int garch_group_size = 0;
+              for(j in 1:M) if(garch_group_mat[j, g] == 1) garch_group_size += 1;
+              vector[garch_group_size] last_shocks;
+              int count = 1;
+              for(j in 1:M) {
+                if(garch_group_mat[j, g] == 1) {
+                  if(garch_eta_form == 0) last_shocks[count] = shocks[(i-1), j] * garch_v[g];
+                  if(garch_eta_form == 1) last_shocks[count] = shocks[(i-1), j];
+                  count += 1;
+                }
+              }
+              garch_v[g] = sqrt(garch_param[g][1] + garch_param[g][2] * garch_v[g]^2 + garch_param[g][3] * mean(last_shocks .* last_shocks));
+              count = 1;
+              for(j in 1:M) {
+                if(garch_group_mat[j, g] == 1) {
+                  shocks[i,j] = shocks[i,j] / garch_v[g];
+                  count += 1;
+                }
+              }
+            }
+            volatility[i,:] = garch_v';
+          }
+        }
+      }
+    }
+    if(include_vol_breaks == 1) {
+      for(i in 1:N) {
+        if(vol_breaks[i] == 1) vol_break_count += 1;
+        vol_v = relative_vol[:,vol_break_count];
+        shocks[i,:] = shocks[i,:] ./ vol_v';
+        volatility[i,:] = vol_v';
       }
     }
   }
