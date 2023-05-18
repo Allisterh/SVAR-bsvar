@@ -5,7 +5,7 @@
 \title{\code{shock_decomp} computes ... for models
 estimated with \code{bsvar}.}
 \usage{
-shock_decomp(obj, sub_N = NULL, apply_restriction = TRUE, progress_bar = TRUE)
+shock_decomp(obj, sub_N = NULL, apply_restriction = TRUE)
 }
 \arguments{
 \item{obj}{An object of class `stanfit` as returned by `bsvar()`.}

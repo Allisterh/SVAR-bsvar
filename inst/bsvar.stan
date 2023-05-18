@@ -685,6 +685,7 @@ generated quantities {
   matrix[N + lags, number_of_quarterly] yq;
   vector[prior_elast_num] elasticity;
   matrix[N, M] shocks;
+  matrix[N, M] residuals;
   matrix[N, (include_garch_groups == 1 ? garch_group_num : M)] volatility;
   if(include_garch_groups == 1) {
     volatility = rep_matrix(1.0, N, garch_group_num);
@@ -766,6 +767,7 @@ generated quantities {
       } else {
         xA = rep_matrix(0, N, M);
       }
+      residuals = (y - cmat - xA);
       if (B_inverse == 0) shocks = (y - cmat - xA) / B';
       if (B_inverse == 1) shocks = (y - cmat - xA) * B';
     } else {
