@@ -156,8 +156,9 @@ additional attributes.
 \loadmathjax{}
 Provides an easy-to-use interface to `cmdstanr` for Bayesian estimation
 of non-Gaussian structural vector autoregressions (SVARs). Default
-arguments are designed to work well in most cases. Just provide the data
-and the number of autoregressive lags. See Details for more.
+arguments are designed to work well in most cases. If unsure about the
+arguments, you may just provide the data and the number of autoregressive lags.
+See Details for more.
 }
 \details{
 To be written.
