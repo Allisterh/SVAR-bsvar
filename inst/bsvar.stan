@@ -804,7 +804,7 @@ generated quantities {
                 if(garch_eta_form == 0) garch_v[j] = sqrt(garch_param[j][1] + garch_param[j][2] * garch_v[j]^2 + garch_param[j][3] * (shocks[i-1,j] * garch_v[j])^2);
                 if(garch_eta_form == 1) garch_v[j] = sqrt(garch_param[j][1] + garch_param[j][2] * garch_v[j]^2 + garch_param[j][3] * shocks[i-1,j]^2);
                 shocks[i,j] = shocks[i,j] / garch_v[j];
-                volatility[i,:] = garch_v';
+                volatility[i,j] = garch_v[j];
               }
             }
         } else {
@@ -822,6 +822,7 @@ generated quantities {
                 }
               }
               garch_v[g] = sqrt(garch_param[g][1] + garch_param[g][2] * garch_v[g]^2 + garch_param[g][3] * mean(last_shocks .* last_shocks));
+              volatility[i,g] = garch_v[g];
               count = 1;
               for(j in 1:M) {
                 if(garch_group_mat[j, g] == 1) {
@@ -830,7 +831,6 @@ generated quantities {
                 }
               }
             }
-            volatility[i,:] = garch_v';
           }
         }
       }
