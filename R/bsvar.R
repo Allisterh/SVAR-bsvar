@@ -31,6 +31,9 @@
 #'                      "garch_groups" = NULL,
 #'                      "garch_eta_form" = FALSE),
 #' vol_breaks = NULL,
+#' measurement_errors = c(),
+#' measurement_errors_control = list("measurement_errors_sigma" = NULL,
+#'                                   "measurement_errors_hyper_prior" = c(-3, 0.3)),
 #' other_priors = list("B_prior" = c(2^2, NA),
 #'                     "prior_elasticity" = NULL,
 #'                     "constant_prior" = c(0, Inf),
@@ -108,6 +111,12 @@
 #' to specify fixed shock volatility regimes. The elements of the list should be vectors
 #' of length two specifying the dates for the first periods of the regimes, e.g. c(1979, 10),
 #' for all regimes but the first. See Details for more.
+#' @param measurement_errors EXPERIMENTAL FEATURE. Vector of positive integers.
+#' Defaults to an empty vector in which case no measurement errors are included in the model.
+#' For instance, if you would like to model measurement errors in the second and third variables
+#' of the model, you would set this argument to `c(2, 3)`.
+#' @param measurement_errors_control EXPERIMENTAL FEATURE. Named list.
+#' Further arguments for specification of measurement errors go here. See Details for more.
 #' @param other_priors Named list. Any other priors are specified here. Default values
 #' work well in almost any case and are highly recommended. Most importantly, the prior
 #' on \mjseqn{B} is specified via `B_prior` most conveniently by providing a vector of
@@ -159,6 +168,9 @@ bsvar <- function(y,
                                        "garch_groups" = NULL,
                                        "garch_eta_form" = FALSE),
                   vol_breaks = NULL,
+                  measurement_errors = c(),
+                  measurement_errors_control = list("measurement_errors_sigma" = NULL,
+                                                    "measurement_errors_hyper_prior" = c(-3, 0.3)),
                   other_priors = list("B_prior" = c(2^2, NA),
                                       "prior_elasticity" = NULL,
                                       "constant_prior" = c(0, Inf),
@@ -231,6 +243,8 @@ bsvar <- function(y,
   if(is.null(no_init_ols)) no_init_ols <- include_minnesota
 
   if(length(y) == 1) y <- matrix(0, ncol = y, nrow = 0)
+  if(is.null(ncol(y))) stop("Univariate data not allowed (for now).")
+  if(ncol(y) == 1) stop("Univariate data not allowed (for now).")
   N <- nrow(y) - lags
   if(N < 0) N <- 0
   M <- ncol(y)
@@ -687,6 +701,35 @@ bsvar <- function(y,
   if(length(other_priors$vol_breaks_prior) == 1) other_priors$vol_breaks_prior <- rep(other_priors$vol_breaks_prior, sum(vol_breaks_binary) + 1)
   init_relative_vol <- matrix(1, nrow = ncol(y) * include_vol_breaks, ncol = sum(vol_breaks_binary) + 1) / (sum(vol_breaks_binary) + 1)
 
+  ##########################
+  ### Measurement errors ###
+  ##########################
+
+  measurement_errors_num <- length(measurement_errors)
+  if(measurement_errors_num > 0) {
+    if(min(measurement_errors) < 1 || max(measurement_errors) > M) stop("min(measurement_errors) < 1 || max(measurement_errors) > M.")
+  }
+  if(is.null(measurement_errors_control$measurement_errors_sigma)) {
+    measurement_errors_control$measurement_errors_sigma <- rep(NA, measurement_errors_num)
+  }
+  if(length(measurement_errors_control$measurement_errors_sigma) != measurement_errors_num) {
+    stop("length(measurement_errors_control$measurement_errors_sigma) != measurement_errors_num.")
+  }
+  if(is.null(measurement_errors_control$measurement_errors_hyperprior)) {
+    measurement_errors_control$measurement_errors_hyperprior <- c(-2, 0.5)
+  }
+  measurement_errors_binary <- ifelse(1:M %in% measurement_errors, 1, 0)
+  measurement_errors_sigma <- measurement_errors_control$measurement_errors_sigma
+  measurement_errors_hyper_prior <- measurement_errors_control$measurement_errors_hyper_prior
+  measurement_errors_hyper_num <- sum(is.na(measurement_errors_sigma))
+  hyper_measurement_errors_init <- rep(exp(measurement_errors_hyper_prior[1] - measurement_errors_hyper_prior[2]^2), measurement_errors_hyper_num)
+  if(measurement_errors_num > 0) measurement_errors_size <- sum(!is.na(y[,measurement_errors])) else measurement_errors_size <- 0
+  measurement_errors_init <- rep(0, measurement_errors_size)
+  measurement_errors_sigma[which(is.na(measurement_errors_sigma))] <- 0 # Stan placeholder for NA
+  if(measurement_errors_hyper_num != measurement_errors_num && transform) {
+    measurement_errors_sigma <- measurement_errors_sigma / data_transformation$scale[measurement_errors]
+  }
+
   ##############################
   ### Collect initial values ###
   ##############################
@@ -695,13 +738,15 @@ bsvar <- function(y,
                 "garch_param" = garch_init,
                 "relative_vol_raw" = init_relative_vol,
                 "missing_data_raw" = missing_data_raw_init,
-                "monthly_raw" = init_monthly)
+                "monthly_raw" = init_monthly,
+                "measurement_errors" = measurement_errors_init)
   if(hyper_free[1] != 0) inits$hyper_shrinkage <- hyper_fixed_values[1]
   if(hyper_free[2] != 0) inits$hyper_lags <- hyper_fixed_values[2]
   if(hyper_free[3] != 0) inits$hyper_ownlags <- hyper_fixed_values[3]
   if(minnesota_control$soc < 0) if(minnesota_control$soc_dio_dep[1] == 1) inits$hyper_soc <- log(5) else inits$hyper_soc <- log(1)
   if(minnesota_control$dio < 0) if(minnesota_control$soc_dio_dep[2] == 1) inits$hyper_dio <- log(5) else inits$hyper_dio <- log(1)
   if(include_hyper_B) inits$hyper_B <- exp(other_priors$hyper_B_prior[1] - other_priors$hyper_B_prior[2]^2) # Mode of log-normal default prior
+  inits$hyper_measurement_errors <- hyper_measurement_errors_init
 
   ########################
   ### Prior simulation ###
@@ -822,6 +867,14 @@ bsvar <- function(y,
                    quarterly_binary = quarterly_binary,
                    quarterly_sums = quarterly_sums,
 
+                   # Measurement errors
+                   measurement_errors_num = measurement_errors_num,
+                   measurement_errors_binary = measurement_errors_binary,
+                   measurement_errors_sigma = measurement_errors_sigma,
+                   measurement_errors_hyper_prior = measurement_errors_hyper_prior,
+                   measurement_errors_hyper_num = measurement_errors_hyper_num,
+                   measurement_errors_size = measurement_errors_size,
+
                    # Other stuff
                    parallel_likelihood = ifelse(threads_per_chain == 1, 0, 1),
                    minnesota_parallel = minnesota_parallel,
@@ -891,9 +944,11 @@ bsvar <- function(y,
            hyper_soc = as.array(rep(hyper_soc, soc_free)),
            hyper_dio = as.array(rep(hyper_dio, dio_free)),
            hyper_B = as.array(rep(hypers[4], include_hyper_B)),
+           hyper_measurement_errors = as.array(inits$hyper_measurement_errors),
            garch_param = as.array(inits$garch_param),
            relative_vol_raw = as.array(inits$relative_vol_raw),
            missing_data_raw = as.array(inits$missing_data_raw),
+           measurement_errors = as.array(inits$measurement_errors),
            A_par = c(A)[!is.na(A)],
            monthly_raw = as.array(inits$monthly_raw))
     }
@@ -914,12 +969,18 @@ bsvar <- function(y,
   if(init_optim == TRUE) {
     cat("Initial value optimization... \n")
     standata_optim <- standata
-    if(init_hyperpar_optim == FALSE) { # NB: 'hyper_B_soft' not included here for now
+    if(init_hyperpar_optim == FALSE) {
       standata_optim$hyper_len_vec[] <- 0
       standata_optim$include_soc <- 0
       standata_optim$include_dio <- 0
       standata_optim$include_hyper_B <- 0
-      if(sum(standata_optim$B_prior_cov == -99) != 0) standata_optim$B_prior_cov[standata_optim$B_prior_cov == -99] <- inits$hyper_B
+      if(standata_optim$measurement_errors_hyper_num > 0) {
+        standata_optim$measurement_errors_hyper_num <- 0
+        standata_optim$measurement_errors_sigma[which(standata_optim$measurement_errors_sigma == 0)] <- inits$hyper_measurement_errors
+      }
+      if(sum(standata_optim$B_prior_cov == -99) != 0){
+        standata_optim$B_prior_cov[standata_optim$B_prior_cov == -99] <- inits$hyper_B
+      }
     }
     opt <- mod$optimize(data = standata_optim,
                         init = init_fun,
@@ -943,6 +1004,7 @@ bsvar <- function(y,
       for(i in 1:nrow(inits$relative_vol_raw)) inits$relative_vol_raw[i,] <- inits$relative_vol_raw[i,] / sum(inits$relative_vol_raw[i,])
     }
     if(include_missing_data == TRUE) inits$missing_data <- unname(opt_par[grep("missing_data_raw", names(opt_par))])
+    if(length(measurement_errors) > 0) inits$measurement_errors <- unname(opt_par[grep("measurement_errors[", names(opt_par), fixed = TRUE)])
     if(init_hyperpar_optim == TRUE) {
       if(standata$hyper_len_vec[1] != 0) inits$hyper_shrinkage <- unname(opt_par[grep("hyper_shrinkage", names(opt_par))])
       if(standata$hyper_len_vec[2] != 0) inits$hyper_lags <- unname(opt_par[grep("hyper_lags", names(opt_par))])
@@ -950,7 +1012,9 @@ bsvar <- function(y,
       if(soc_free == 1) inits$hyper_soc <- unname(opt_par[grep("hyper_soc", names(opt_par))])
       if(dio_free == 1) inits$hyper_dio <- unname(opt_par[grep("hyper_dio", names(opt_par))])
       if(standata$include_hyper_B != 0) inits$hyper_B <- unname(opt_par[grep("hyper_B[", names(opt_par), fixed = TRUE)])
-      if(standata$B_soft_res_num > 0) inits$hyper_B_soft <- unname(opt_par[grep("hyper_B_soft[", names(opt_par), fixed = TRUE)])
+      if(standata_optim$measurement_errors_hyper_num > 0) {
+        inits$hyper_measurement_errors <- unname(opt_par[grep("hyper_measurement_errors[", names(opt_par), fixed = TRUE)])
+      }
     }
   }
 
@@ -966,9 +1030,10 @@ bsvar <- function(y,
       param_name <- param_names[i]
       param_inits <- unlist(inits_val[param_name])
       if(length(param_inits) != 0) {
-        if(param_name == "A") { # !!! (NB:  'A_restrictions')
-          inits_var <- c(inits_var, c(minnesota_sds(M, lags, hyper_fixed_values))^2)
-        } else if(param_name %in% c("garch_param", "relative_vol_raw")) {
+        #if(param_name == "A") { # !!! (NB:  'A_restrictions')
+        #  inits_var <- c(inits_var, c(minnesota_sds(M, lags, hyper_fixed_values))^2)
+        #} else
+        if(param_name %in% c("garch_param", "relative_vol_raw")) {
           if(param_name == "garch_param" && include_garch_groups) {
             inits_var <- c(inits_var, rep(0.2^2, length(param_inits) -  garch_group_num))
           } else {

@@ -154,6 +154,21 @@ functions {
     }
     return y_new;
   }
+  matrix subtract_measurement_errors(matrix y_raw, array[] int measurement_errors_binary, vector measurement_errors, int M, int N_plus_lags) {
+    matrix[rows(y_raw), M] y_new = y_raw;
+    int me_count = 0;
+    for(j in 1:M) {
+      if(measurement_errors_binary[j] == 1) {
+        for(i in 1:N_plus_lags) {
+          if(y_raw[i,j] != positive_infinity()) {
+            me_count += 1;
+            y_new[i,j] = y_new[i,j] - measurement_errors[me_count];
+          }
+        }
+      }
+    }
+    return y_new;
+  }
 }
 data {
   int<lower=0> N;
@@ -226,6 +241,12 @@ data {
   int<lower=0> number_of_quarterly;
   array[M] int<lower=0, upper=1> quarterly_binary;
   vector[number_of_quarterly * (N + lags) %/% 3] quarterly_sums;
+  int<lower=0> measurement_errors_num;
+  array[M] int measurement_errors_binary;
+  vector<lower=0>[measurement_errors_num] measurement_errors_sigma;
+  vector[2] measurement_errors_hyper_prior;
+  int<lower=0> measurement_errors_hyper_num;
+  int<lower=0> measurement_errors_size;
   int<lower=0, upper=1> parallel_likelihood;
   int<lower=0, upper=1> minnesota_parallel;
   vector[M] data_transformation_mean;
@@ -248,9 +269,11 @@ parameters {
   vector[soc_free] hyper_soc;
   vector[dio_free] hyper_dio;
   vector<lower=0>[include_hyper_B] hyper_B;
+  vector<lower=0>[measurement_errors_hyper_num] hyper_measurement_errors;
   array[(include_garch_groups == 1 ? garch_group_num : M*include_garch)] simplex[(garch_dependence == 1 ? M + 2 : 3)] garch_param;
   array[include_vol_breaks *  M] simplex[vol_breaks_num + 1] relative_vol_raw;
   vector[missing_data_count] missing_data_raw;
+  vector[measurement_errors_size] measurement_errors;
   array[number_of_quarterly * (N + lags) %/% 3] simplex[3] monthly_raw;
 }
 transformed parameters {
@@ -262,7 +285,6 @@ transformed parameters {
   vector[(include_garch_groups == 1 ? garch_group_num : M*include_garch)] garch_C;
   matrix<lower=0, upper=(vol_breaks_num+1)>[include_vol_breaks * M, vol_breaks_num + 1] relative_vol;
   vector[missing_data_count] missing_data;
-
   if(hyperbolic_transformation == 1) {
     missing_data = (exp(missing_data_raw) - exp(-missing_data_raw)) / 2;
   } else {
@@ -382,7 +404,7 @@ model {
       cvec = rep_vector(0, M);
     }
     cmat = rep_vector(1, N) * cvec';
-    if(missing_data_count == 0 && number_of_quarterly == 0) {
+    if(missing_data_count == 0 && number_of_quarterly == 0 && measurement_errors_num == 0) {
       if (lags > 0) {
         xA = x * A;
       } else {
@@ -395,6 +417,9 @@ model {
         y_raw_new = rebuild_y_raw(y_raw, quarterly_binary, quarterly_sums, monthly_raw, M, (N + lags) %/% 3);
       } else {
         y_raw_new = y_raw;
+      }
+      if(measurement_errors_num > 0) {
+        y_raw_new = subtract_measurement_errors(y_raw_new, measurement_errors_binary, measurement_errors, M, N + lags);
       }
       yx_raw = build_yx(y_raw_new, lags, missing_data, missing_data_location, missing_data_count, N, M);
       yy = yx_raw[(lags + 1):(N + lags), 1:M];
@@ -556,7 +581,6 @@ model {
       if (sgt_len_vec[2] == M && p_prior[2] != positive_infinity()) target += normal_lpdf(gamma[i, 2] | p_prior[1], p_prior[2]);
       if (sgt_len_vec[3] == M && q_prior[2] != positive_infinity()) target += normal_lpdf(gamma[i, 3] | q_prior[1], q_prior[2]);
     } else {
-      // Note the Jacobian correction to obtain shifted log-normal prior!
       if (sgt_len_vec[2] == M && p_prior[2] != positive_infinity()) target += lognormal_lpdf(exp(gamma[i, 2]) - p_q_prior_shift[1] | p_prior[1], p_prior[2]) + gamma[i, 2];
       if (sgt_len_vec[3] == M && q_prior[2] != positive_infinity()) target += lognormal_lpdf(exp(gamma[i, 3]) - p_q_prior_shift[2] | q_prior[1], q_prior[2]) + gamma[i, 3];
     }
@@ -673,6 +697,30 @@ model {
       target += (exp(missing_data_raw[i]) + exp(-missing_data_raw[i])) / 2;
     }
   }
+  if (measurement_errors_num > 0 && N > 0) {
+    int me_count = 0;
+    int me_sigma_count = 0;
+    int me_hyper_count = 0;
+    for(j in 1:M) {
+      if(measurement_errors_binary[j] == 1) {
+        me_sigma_count += 1;
+        if(measurement_errors_sigma[me_sigma_count] == 0) {
+          me_hyper_count += 1;
+          target += lognormal_lpdf(hyper_measurement_errors[me_hyper_count] | measurement_errors_hyper_prior[1], measurement_errors_hyper_prior[2]);
+        }
+        for(i in 1:(N + lags)) {
+          if(y_raw[i,j] != positive_infinity()) {
+            me_count += 1;
+            if(measurement_errors_sigma[me_sigma_count] == 0) {
+              target += normal_lpdf(measurement_errors[me_count] | 0, hyper_measurement_errors[me_hyper_count]);
+            } else {
+              target += normal_lpdf(measurement_errors[me_count] | 0, measurement_errors_sigma[me_sigma_count]);
+            }
+          }
+        }
+      }
+    }
+  }
 }
 generated quantities {
   vector<lower=p_q_mins[1]>[sgt_len_vec[2]] p;
@@ -692,7 +740,6 @@ generated quantities {
   } else {
     volatility = rep_matrix(1.0, N, M);
   }
-
   if (soc_free == 1) hyper_soc_exp = exp(hyper_soc);
   if (dio_free == 1) hyper_dio_exp = exp(hyper_dio);
   if (sgt_len_vec[2] == M) {
@@ -706,7 +753,6 @@ generated quantities {
   if (sgt_len_vec[2] == M && sgt_len_vec[3] == 0) pq = p * exp(sgt_fixed[3]);
   if (sgt_len_vec[2] == 0 && sgt_len_vec[3] == 0) pq = rep_vector(exp(sgt_fixed[2]) * exp(sgt_fixed[3]), pq_len);
   B_inv = inverse(B);
-
   if (missing_data_count > 0) {
     matrix[N + lags, M] y_new = y_raw;
     for(i in 1:missing_data_count) {
@@ -729,7 +775,6 @@ generated quantities {
       }
     }
   }
-
   if (prior_elast_num > 0) {
     vector[M*M] Bvec;
     for(i in 1:M) Bvec[((i-1)*M+1):(i*M)] = col(B, i);
@@ -742,7 +787,6 @@ generated quantities {
       }
     }
   }
-
   if (N > 0) {
     matrix[N, M] xA;
     matrix[N, M] cmat;
@@ -754,7 +798,6 @@ generated quantities {
     matrix[N + lags, M] y_raw_new;
     matrix[N, M] yy;
     matrix[N, M*lags] xx;
-
     if (include_constant == 1) {
       cvec = constant;
     } else {
@@ -776,6 +819,9 @@ generated quantities {
       } else {
         y_raw_new = y_raw;
       }
+      if(measurement_errors_num > 0) {
+        y_raw_new = subtract_measurement_errors(y_raw_new, measurement_errors_binary, measurement_errors, M, N + lags);
+      }
       yx_raw = build_yx(y_raw_new, lags, missing_data, missing_data_location, missing_data_count, N, M);
       yy = yx_raw[(lags + 1):(N + lags), 1:M];
       xx = yx_raw[(lags + 1):(N + lags), (M + 1):(M + M*lags)];
@@ -784,6 +830,7 @@ generated quantities {
       } else {
         xA = rep_matrix(0, N, M);
       }
+      residuals = (yy - cmat - xA);
       if (B_inverse == 0) shocks = (yy - cmat - xA) / B';
       if (B_inverse == 1) shocks = (yy - cmat - xA) * B';
     }
