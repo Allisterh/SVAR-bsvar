@@ -39,7 +39,6 @@
 #'                     "q_prior" = c(2, 1),
 #'                     "p_q_prior_shift" = NULL,
 #'                     "hyper_B_prior" = c(0, 1),
-#'                     "hyper_B_soft_prior" = c(4, 4),
 #'                     "vol_breaks_prior" = 2),
 #' chains = 4,
 #' parallel_chains = ifelse(chains <= 4, chains, 4),
@@ -168,7 +167,6 @@ bsvar <- function(y,
                                       "q_prior" = c(2, 1),
                                       "p_q_prior_shift" = NULL,
                                       "hyper_B_prior" = c(0, 1),
-                                      "hyper_B_soft_prior" = c(4, 4),
                                       "vol_breaks_prior" = 2),
                   chains = 4,
                   parallel_chains = ifelse(chains <= 4, chains, 4),
@@ -463,7 +461,6 @@ bsvar <- function(y,
   if(is.null(other_priors$q_prior)) other_priors$q_prior <- c(2, 1) # Log-normal prior: c(2, 1) -> mode ~ 2.7 (dof ~ 5.4), mean ~ 12 (dof ~ 24)
   if(is.null(other_priors$p_q_prior_shift)) other_priors$p_q_prior_shift <- dist_control$p_q_mins
   if(is.null(other_priors$hyper_B_prior)) other_priors$hyper_B_prior <- c(0, 1) # Log-normal prior: c(0, 1) -> mode ~ 0.37
-  if(is.null(other_priors$hyper_B_soft_prior)) other_priors$hyper_B_soft_prior <- c(4, 4) # Symmetric Beta prior
   if(is.null(other_priors$vol_breaks_prior)) other_priors$vol_breaks_prior <- 2 # Dirichlet prior, either uniform (scalar), or not (vector)
   prior_elast_binary <- rep(0, M * M)
   if(!is.null(other_priors$prior_elasticity)) {
@@ -999,6 +996,7 @@ bsvar <- function(y,
       chains = chains,
       parallel_chains = parallel_chains,
       threads_per_chain = threads_per_chain,
+      max_treedepth = max_treedepth,
       inv_metric = init_inv_metric,
       metric = metric,
       save_warmup = TRUE,
