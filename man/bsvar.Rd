@@ -27,6 +27,9 @@ garch_control = list("garch_prior" = 10/12,
                      "garch_groups" = NULL,
                      "garch_eta_form" = FALSE),
 vol_breaks = NULL,
+measurement_errors = c(),
+measurement_errors_control = list("measurement_errors_sigma" = NULL,
+                                  "measurement_errors_hyper_prior" = c(-3, 0.3)),
 other_priors = list("B_prior" = c(2^2, NA),
                     "prior_elasticity" = NULL,
                     "constant_prior" = c(0, Inf),
@@ -35,7 +38,6 @@ other_priors = list("B_prior" = c(2^2, NA),
                     "q_prior" = c(2, 1),
                     "p_q_prior_shift" = NULL,
                     "hyper_B_prior" = c(0, 1),
-                    "hyper_B_soft_prior" = c(4, 4),
                     "vol_breaks_prior" = 2),
 chains = 4,
 parallel_chains = ifelse(chains <= 4, chains, 4),
@@ -120,6 +122,14 @@ Also, if not NULL, then `y` must be a time series object. A list can be provided
 to specify fixed shock volatility regimes. The elements of the list should be vectors
 of length two specifying the dates for the first periods of the regimes, e.g. c(1979, 10),
 for all regimes but the first. See Details for more.}
+
+\item{measurement_errors}{EXPERIMENTAL FEATURE. Vector of positive integers.
+Defaults to an empty vector in which case no measurement errors are included in the model.
+For instance, if you would like to model measurement errors in the second and third variables
+of the model, you would set this argument to `c(2, 3)`.}
+
+\item{measurement_errors_control}{EXPERIMENTAL FEATURE. Named list.
+Further arguments for specification of measurement errors go here. See Details for more.}
 
 \item{other_priors}{Named list. Any other priors are specified here. Default values
 work well in almost any case and are highly recommended. Most importantly, the prior
