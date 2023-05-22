@@ -14,12 +14,27 @@ prnt(
   ...
 )
 }
+\arguments{
+\item{x}{An instance of class \code{stanfit} as outputted by \code{\link{bsvar}}.}
+
+\item{pars}{A character vector of parameter names. Defaults to a predefined set of the
+most important parameters. If \code{include = FALSE}, then the specified parameters are excluded
+from the printed summary.}
+
+\item{probs}{A numeric vector of quantiles of interest.}
+
+\item{digits_summary}{The number of significant digits to use when printing the summary, defaulting to 2.}
+
+\item{include}{Logical. Indicates whether to include or exclude the parameters named by the pars argument.}
+
+\item{...}{Additional arguments passed to the summary method for stanfit objects.}
+}
 \description{
-Wrapper for \code{\link[rstan]{print}}, that prints by default a summary
+Wrapper for \code{\link[rstan]{print.stanfit}}, that prints by default a summary
 of only some of the parameters from the \code{stanfit} object outputted
 by \code{\link{bsvar}}. By default \code{use_cache = FALSE}, which makes \code{prnt} typically
-much faster than \code{\link[rstan]{print}} if there is no cached data (right after estimation),
-but much slower if there is cached data (if \code{\link[rstan]{print}} has already been called).
+much faster than \code{\link[rstan]{print.stanfit}} if there is no cached data (right after estimation),
+but much slower if there is cached data (if \code{\link[rstan]{print.stanfit}} has already been called).
 }
 \seealso{
 \code{\link[rstan]{print.stanfit}}
