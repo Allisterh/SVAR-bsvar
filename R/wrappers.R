@@ -17,3 +17,4 @@ prnt <- function(x, pars = NULL,
   }
   print(x, pars, probs, digits_summary, include, ...)
 }
+
