@@ -60,80 +60,80 @@ with M given by the provided integer.}
 \item{include_constant}{Logical. Should an intercept term be included in the model?}
 
 \item{dist}{Character string. The distribution of shocks. Allowed values are: \cr
-\mjseqn{\phantom{..}} "sgt" (skewed generalized \emph{t}-distribution), \cr
-\mjseqn{\phantom{..}} "st" (skewed \emph{t}-distribution; recommended), \cr
-\mjseqn{\phantom{..}} "t" (\emph{t}-distribution), \cr
-\mjseqn{\phantom{..}} "snormal" (skewed normal distribution), \cr
-\mjseqn{\phantom{..}} "normal" (normal distribution; not recommended), \cr
-\mjseqn{\phantom{..}} "custom" (see Details)}
+\mjseqn{\phantom{..}} \code{"sgt"} (skewed generalized \emph{t}-distribution), \cr
+\mjseqn{\phantom{..}} \code{"st"} (skewed \emph{t}-distribution; recommended), \cr
+\mjseqn{\phantom{..}} \code{"t"} (\emph{t}-distribution), \cr
+\mjseqn{\phantom{..}} \code{"snormal"} (skewed normal distribution), \cr
+\mjseqn{\phantom{..}} \code{"normal"} (normal distribution; not recommended), \cr
+\mjseqn{\phantom{..}} \code{"custom"} (see Details)}
 
 \item{dist_control}{Named list. Further arguments for specification of shock
-distributions go here. Most importantly, `fix_moments` accepts values: \cr
-\mjseqn{\phantom{..}} 0 (zero mode and unit scale assumed, mean and variance not fixed), \cr
-\mjseqn{\phantom{..}} 1 (zero mean and unit scale assumed, variance not fixed), \cr
-\mjseqn{\phantom{..}} 2 (zero mean and unit variance assumed; recommended). \cr
+distributions go here. Most importantly, \code{fix_moments} accepts values: \cr
+\mjseqn{\phantom{..}} \code{0} (zero mode and unit scale assumed, mean and variance not fixed), \cr
+\mjseqn{\phantom{..}} \code{1} (zero mean and unit scale assumed, variance not fixed), \cr
+\mjseqn{\phantom{..}} \code{2} (zero mean and unit variance assumed; recommended). \cr
 See Details for more.}
 
-\item{B_inverse}{Logical. By default `TRUE`. \cr
-\mjseqn{\phantom{..}} If `TRUE`, the error term is defined as \mjseqn{u_t = B^{-1} \varepsilon_t}. \cr
-\mjseqn{\phantom{..}} If `FALSE`, the error term is defined as \mjseqn{u_t = B \varepsilon_t}. \cr
+\item{B_inverse}{Logical. By default \code{TRUE}. \cr
+\mjseqn{\phantom{..}} If \code{TRUE}, the error term is defined as \mjseqn{u_t = B^{-1} \varepsilon_t}. \cr
+\mjseqn{\phantom{..}} If \code{FALSE}, the error term is defined as \mjseqn{u_t = B \varepsilon_t}. \cr
 The former is computationally more efficient, while the latter allows for restrictions/priors
 directly on the effects of the shocks \mjseqn{\varepsilon_t}.}
 
 \item{B_pos_diag}{Logical. Should a positive sign restriction on the diagonal
-of \mjseqn{B} be imposed? Defaults to `TRUE` as this is computationally convenient
+of \mjseqn{B} be imposed? Defaults to \code{TRUE} as this is computationally convenient
 and comes with a very little cost in generality.}
 
-\item{B_restrictions}{Either NULL or a matrix of dimension \mjseqn{M \times M}.
+\item{B_restrictions}{Either \code{NULL} or a matrix of dimension \mjseqn{M \times M}.
 The matrix can be used to impose restrictions on the elements of \mjseqn{B}.
-Overrides `B_pos_diag` if not NULL.
-Note that the value of `B_inverse` affects the interpretation of these restrictions.
+Overrides \code{B_pos_diag} if not \code{NULL}.
+Note that the value of \code{B_inverse} affects the interpretation of these restrictions.
 Allowed values for the restriction matrix are: \cr
 \mjseqn{\phantom{..}} NA (no restriction), \cr
 \mjseqn{\phantom{..}} 0 (zero restriction), \cr
 \mjseqn{\phantom{..}} 1 (positive sign restriction), \cr
 \mjseqn{\phantom{..}} -1 (negative sign restriction). \cr}
 
-\item{A_restrictions}{Either NULL or a matrix of dimension \mjseqn{Mp \times M}.
+\item{A_restrictions}{Either \code{NULL} or a matrix of dimension \mjseqn{Mp \times M}.
 The matrix can be used to impose restrictions on the elements of the matrix of
 autoregressive parameters \mjseqn{A}. Only zero restrictions are allowed, that is,
 the matrix takes only values NA (no restriction) or 0 (zero restriction).}
 
 \item{include_minnesota}{Logical. Should a Minnesota prior on the autoregressive
-parameters be imposed? Defaults to `TRUE` (highly recommended).}
+parameters be imposed? Defaults to \code{TRUE} (highly recommended).}
 
 \item{minnesota_control}{Named list. Further arguments for specification of the
 Minnesota prior go here. Most importantly, by default the overall strength of the
 prior is estimated from the data in a hierarchical fashion. Also, the prior mean
 on the first order autoregressive coefficients is by default 1 for each equation.
-This can be controlled via `minnesota_means`, which allows either a scalar or a
+This can be controlled via \code{minnesota_means}, which allows either a scalar or a
 vector of length \mjseqn{M}. See Details for more.}
 
 \item{include_garch}{Logical. Should the shock volatility be modeled via GARCH-process?
-Defaults to `FALSE` (constant shock volatility), which is computationally less burdensome.}
+Defaults to \code{FALSE} (constant shock volatility), which is computationally less burdensome.}
 
 \item{garch_control}{Named list. Further arguments for specification of the
 volatility process. Most importantly, interdependent volatility processes can be
-imposed by setting `garch_dep = TRUE`, which may however be computationally burdensome.
+imposed by setting \code{garch_dep = TRUE}, which may however be computationally burdensome.
 By default the volatility processes are mutually independent. See Details for more.}
 
-\item{vol_breaks}{Either NULL or a list. Must be NULL if `include_garch = TRUE`.
-Also, if not NULL, then `y` must be a time series object. A list can be provided
+\item{vol_breaks}{Either \code{NULL} or a list. Must be \code{NULL} if \code{include_garch = TRUE}.
+Also, if not \code{NULL}, then \code{y} must be a time series object. A list can be provided
 to specify fixed shock volatility regimes. The elements of the list should be vectors
-of length two specifying the dates for the first periods of the regimes, e.g. c(1979, 10),
+of length two specifying the dates for the first periods of the regimes, e.g. \code{c(1979, 10)},
 for all regimes but the first. See Details for more.}
 
 \item{measurement_errors}{EXPERIMENTAL FEATURE. Vector of positive integers.
 Defaults to an empty vector in which case no measurement errors are included in the model.
 For instance, if you would like to model measurement errors in the second and third variables
-of the model, you would set this argument to `c(2, 3)`.}
+of the model, you would set this argument to \code{c(2, 3)}.}
 
 \item{measurement_errors_control}{EXPERIMENTAL FEATURE. Named list.
 Further arguments for specification of measurement errors go here. See Details for more.}
 
 \item{other_priors}{Named list. Any other priors are specified here. Default values
 work well in almost any case and are highly recommended. Most importantly, the prior
-on \mjseqn{B} is specified via `B_prior` most conveniently by providing a vector of
+on \mjseqn{B} is specified via \code{B_prior} most conveniently by providing a vector of
 length two including the prior variance separately for the diagonal elements and
 for the off-diagonal elements of \mjseqn{B}. The latter can be left NA (default),
 in which case the prior variance is estimated from the data in a hierarchical fashion.
@@ -143,11 +143,11 @@ for more control. See Details for more.}
 \item{chains}{Positive integer. The number of Markov chains to run. The default is 4.}
 
 \item{parallel_chains}{Positive integer. The maximum number of Markov chains to run in
-parallel. Ideally equals the value of `chains`, which is the default behaviour if `chains <= 4`.}
+parallel. Ideally equals the value of \code{chains}, which is the default behaviour if \code{chains <= 4}.}
 
 \item{threads_per_chain}{Positive integer. Defaults to 1. Another level of parallelization.
-Might give a modest performance boost up to `threads_per_chain = M` if there are enough
-CPU cores available. Note that the number of CPU cores employed is `parallel_chains * threads_per_chain`.}
+Might give a modest performance boost up to \code{threads_per_chain = M} if there are enough
+CPU cores available. Note that the number of CPU cores employed is \code{parallel_chains * threads_per_chain}.}
 
 \item{max_treedepth}{Positive integer. The maximum allowed tree depth for the Stan's NUTS engine.
 Defaults to a rather conservative value of 15, which is recommended and should be enough even for the
@@ -159,16 +159,17 @@ See the Tree Depth section of the CmdStan User's Guide for more details.}
 \item{...}{Further arguments to be passed to \code{\link[cmdstanr]{sample}}.}
 }
 \value{
-An object of S4 class `stanfit` representing the fitted results with `bsvar` specific
+An object of S4 class \code{stanfit} representing the fitted results with \code{bsvar} specific
 additional attributes.
 }
 \description{
 \loadmathjax{}
-Provides an easy-to-use interface to `cmdstanr` for Bayesian estimation
-of non-Gaussian structural vector autoregressions (SVARs). Default
-arguments are designed to work well in most cases. If unsure about the
-arguments, you may just provide the data and the number of autoregressive lags.
-See Details for more.
+Provides an easy-to-use interface to \code{cmdstanr} for Bayesian estimation
+of non-Gaussian structural vector autoregressions (SVARs). First time calling
+\code{bsvar()} after the installation of \code{bsvar} package, the model is compiled which
+might take a minute or two. The default arguments are designed to work well in most
+cases. If you are unsure about the arguments, you may just provide the data and the
+number of autoregressive lags. See Details for more.
 }
 \details{
 To be written.
