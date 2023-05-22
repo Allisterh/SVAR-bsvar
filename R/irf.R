@@ -110,7 +110,7 @@ irf <- function(obj,
   if(is.null(controls$col)) controls$col <- "tomato"
   if(is.null(controls$median)) controls$median <- FALSE
   if(is.null(controls$prob)) controls$prob <- c(0.05, 0.16, 0.84, 0.95)
-  if(is.null(controls$override_graph)) if(is.null(controls$mar)) controls$mar <- c(2, 2, 2, 1)
+  if(is.null(controls$override_graph)) if(is.null(controls$mar)) controls$mar <- c(2, 2.5, 2, 1)
   if(is.null(controls$varnames)) {
     varnames <- paste0("Variable ", 1:length(variables))
   } else {
@@ -200,7 +200,7 @@ irfs <- function(obj,
   if(is.null(shock_rows)) shock_rows <- TRUE
   controls$override_graph <- TRUE
   if(is.null(controls$mfrow)) controls$mfrow <- c(length(shocks), length(variables))
-  if(is.null(controls$mar)) controls$mar <- c(2, 2, 2, 1)
+  if(is.null(controls$mar)) controls$mar <- c(2, 2.5, 2, 1)
   irf_arrays <- list()
   if(!override_graph) par(mar = controls$mar)
   if(!override_graph) if(shock_rows) par(mfrow = controls$mfrow) else par(mfcol = controls$mfrow)
