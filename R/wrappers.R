@@ -27,7 +27,7 @@ extract <- function(object, pars, apply_restriction = TRUE) {
 #' Print a concise summary
 #'
 #' Wrapper for \code{\link[rstan]{print.stanfit}}, that prints by default a summary
-#' of only some of the parameters from the \code{stanfit} object outputted
+#' of only the most important parameters in the \code{stanfit} object outputted
 #' by \code{\link{bsvar}}. By default \code{use_cache = FALSE}, which makes \code{prnt} typically
 #' much faster than \code{\link[rstan]{print.stanfit}} if there is no cached data (right after estimation),
 #' but much slower if there is cached data (if \code{\link[rstan]{print.stanfit}} has already been called).
