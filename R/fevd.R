@@ -27,6 +27,9 @@ fevd <- function(obj,
       }
     }
 
+    # TEMPORARY:
+    if(horizon < 2) stop("For now, horizon >= 2 required.")
+
     # Check for variance/scale things here...
     if(attributes(obj)$standata$fix_moments != 2) stop("FEVD can only be computed if 'fix_moments' == 2.")
 
