@@ -29,14 +29,14 @@ irf <- function(obj,
     if(!is.null(sub_N)) {
       if(sub_N < N) {
         sub_i <- sample.int(N, sub_N, replace = TRUE)
-        if(lags > 0) A <- A[sub_i,,]
+        if(attributes(fit)$standata$lags > 0) A <- A[sub_i,,]
         B <- B[sub_i,,]
         N <- dim(B)[1]
       }
     }
     if(variables[1] == "all") variables <- c(1:M)
 
-    dt <- attributes(obj)$data_transformation
+    dt <- attributes(fit)$data_transformation
     if(is.null(transform)) transform <- unname(!is.na(dt$mean[1]))
     if(transform == TRUE && !is.na(dt$mean[1])) {
       if(is.null(controls$varscale)) controls$varscale <- rep(1, M)

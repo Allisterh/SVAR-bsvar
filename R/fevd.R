@@ -21,7 +21,7 @@ fevd <- function(obj,
     if(!is.null(sub_N)) {
       if(sub_N < N) {
         sub_i <- sample.int(N, sub_N, replace = TRUE)
-        if(lags > 0) A <- A[sub_i,,]
+        if(attributes(fit)$standata$lags > 0) A <- A[sub_i,,]
         B <- B[sub_i,,]
         N <- dim(B)[1]
       }
