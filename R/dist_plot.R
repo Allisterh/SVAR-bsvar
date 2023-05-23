@@ -76,7 +76,7 @@ dist_plot <- function(fit,
 
   # Skewness parameters
   if(length(grep("lambda", names(fit))) > 0) {
-    fit_lambda <- fit_draws[,paste0("lambda[", 1:M, "]")]
+    fit_lambda <- fit_draws[, grep("lambda[", colnames(fit_draws), fixed = TRUE)]
     fit_lambda$zzz_prior <- prior_sample_lambda
     if(is.null(skew_lim)) skew_lim <- c(-0.6, 0.6)
     plot(0, 0, type = "n", ylim = c(0, M + 1), xlim = skew_lim,
@@ -91,7 +91,7 @@ dist_plot <- function(fit,
   }
 
   if(length(grep("pq", names(fit))) > 0) {
-    fit_pq <- fit_draws[,paste0("pq[", 1:M, "]")]
+    fit_pq <- fit_draws[, grep("pq[", colnames(fit_draws), fixed = TRUE)]
     fit_pq$zzz_prior <- prior_sample_pq
     if(is.null(pq_lim)) pq_lim <- c(p_q_mins[1] * p_q_mins[2], 30)
     plot(0, 0, type = "n", ylim = c(0, M + 1), xlim = pq_lim,
