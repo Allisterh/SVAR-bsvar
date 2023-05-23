@@ -46,33 +46,33 @@ install_cmdstan(version = "2.29.2")
 
 **NOTE: If the above command fails when using Rstudio, try running the command without Rstudio. You can get back to Rstudio after succesfully installing a suitable version of cmdstan.**
 
-Now [cmdstanr](https://mc-stan.org/cmdstanr/) should be all set up! Even if you have an installation of the wrong cmdstan version (<2.29.0 or >2.32.0) on your computer (e.g. you have installed it earlier or by accident), `bsvar()` should find the right version and use that. However, if problems do persist, you may navigate to the location of cmdstan installations as given by `cmdstan_path()` and manually remove the folder(s) cmdstan-2.32.1, cmdstan-2.32.2... (or something similar) and see if that helps.
+Now [cmdstanr](https://mc-stan.org/cmdstanr/) should be all set up. Even if you have an installation of the wrong cmdstan version (<2.29.0 or >2.32.0) on your computer (e.g. you have installed it earlier or by accident), `bsvar()` should find the right version and use that. However, if problems do persist, you may navigate to the location of cmdstan installations as given by `cmdstan_path()` and manually remove the folder(s) cmdstan-2.32.1, cmdstan-2.32.2... (or something similar) and see if that helps.
 
 
 ### Installing the package 
 
-When you have [cmdstanr](https://mc-stan.org/cmdstanr/) all set up you are ready to install the package! Simply run the following commands: 
+When you have [cmdstanr](https://mc-stan.org/cmdstanr/) all set up you are ready to install the package. Simply run the following commands: 
 
 ```
 if(!("devtools" %in% installed.packages())) install.packages("devtools")
 devtools::install_github("jetroant/bsvar")
 ```
 
-The installation of the package itself should be a breeze and only take a few minutes, however if there are a lot of dependencies to be installed (that is, if you do not already have other R-packages that are needed for this package to work installed on your computer) this might take a few minutes.
+The installation of the package itself should be a breeze and only take a few seconds, however if there are a lot of dependencies to be installed (that is, if you do not already have other R-packages that are needed for this package to work installed on your computer) this might take a few minutes.
 
 ### Test drive 
 
-Everything should now be ready for you to use [bsvar](https://github.com/jetroant/bsvar)! First time you call `bsvar()`, a cmdstan program is compiled, which might take a few minutes. This however only needs to be done once, after which such speed bumps cease to exist. To test whether everything works as intended and to get that first time model compilation out of your way, you may run the following commands: 
+Everything should now be ready for you to use [bsvar](https://github.com/jetroant/bsvar). First time you call `bsvar()`, a cmdstan program is compiled, which might take a few minutes. This however only needs to be done once, after which such speed bumps cease to exist. To test whether everything works as intended and to get that first time model compilation out of your way, you may run the following commands: 
 
 ```
 library(bsvar) # Loads the package
 fit <- bsvar(y = matrix(rnorm(200), ncol = 2), lags = 2) # Estimates a bivariate model with two lags using random Gaussian data
-print(fit) # Summarizes the parameter estimates
+prnt(fit) # Summarizes the parameter estimates
 irfs(fit) # Plots impulse response functions
 dist_plot(fit) # Depicts the estimated shock distribution parameters
 ```
 
-These are by no means all the available tools included in the package, but hopefully give some idea of what can be done with the package! More elaborate examples will most probably be added here in the near future as the documentation of the package progresses. 
+These are by no means all the available tools included in the package, but hopefully give some idea of what can be done with the package. More elaborate examples will most probably be added here in the near future as the documentation of the package progresses. 
 
 ### Marginal likelihood estimation 
 
