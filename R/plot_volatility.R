@@ -4,6 +4,8 @@ plot_volatility <- function(obj,
                             y_labels = NULL,
                             probs = NULL,
                             apply_restriction = TRUE,
+                            first_period = NA,
+                            freq = NA,
                             control = list()) {
 
   if("stanfit" %in% class(obj)) {
@@ -18,7 +20,8 @@ plot_volatility <- function(obj,
   if(!is.null(decomp$tsp_)) {
     first_period <- decomp$tsp_[1]; freq <- decomp$tsp_[3]
   } else {
-    first_period <- 1; freq <- 1
+    if(is.na(first_period[1])) first_period <- 1
+    if(is.na(freq)) freq <- 1
   }
   med_volatility <- ts(apply(decomp$volatility, c(2,3), median), start = first_period, frequency = freq)
   y_labels <- paste0("Volatility of Shock ", 1:ncol(med_volatility))
