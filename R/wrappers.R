@@ -46,10 +46,10 @@ prnt <- function(x, pars = NULL,
                  digits_summary = 2, include = TRUE,
                  use_cache = FALSE, ...) {
   if(is.null(pars)) {
-    pars_bool <- fit@sim$pars_oi %in% c("lambda", "log_p", "log_q", "constant", "hyper_shrinkage",
+    pars_bool <- x@sim$pars_oi %in% c("lambda", "log_p", "log_q", "constant", "hyper_shrinkage",
                                         "hyper_lags", "hyper_ownlags", "hyper_soc", "hyper_dio",
                                         "hyper_B", "garch_param", "B", "A", "lp__")
-    pars <- fit@sim$pars_oi[which(pars_bool)]
+    pars <- x@sim$pars_oi[which(pars_bool)]
   }
   print(x, pars, probs, digits_summary, include, ...)
 }
