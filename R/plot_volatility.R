@@ -9,7 +9,7 @@ plot_volatility <- function(obj,
                             control = list()) {
 
   if("stanfit" %in% class(obj)) {
-    decomp <- shock_decomp(fit, apply_restriction = apply_restriction)
+    decomp <- shock_decomp(obj, apply_restriction = apply_restriction)
   } else {
     decomp <- obj
   }
