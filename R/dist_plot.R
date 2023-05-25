@@ -57,17 +57,17 @@ dist_plot <- function(fit,
     prior_sample_lambda <- 2 * rbeta(nrow(fit_draws), lambda_prior[1], lambda_prior[2]) - 1
   }
   if(sgt_len_vec[2] > 0 || sgt_len_vec[3] > 0) {
-    q_prior <- attributes(fit)$standata$q_prior; q_fixed <- exp(attributes(fit)$standata$sgt_fixed[2])
-    p_prior <- attributes(fit)$standata$p_prior; p_fixed <- exp(attributes(fit)$standata$sgt_fixed[3])
+    q_prior <- attributes(fit)$standata$q_prior; q_fixed <- exp(attributes(fit)$standata$sgt_fixed[3])
+    p_prior <- attributes(fit)$standata$p_prior; p_fixed <- exp(attributes(fit)$standata$sgt_fixed[2])
     p_q_mins <- attributes(fit)$standata$p_q_mins
     if(sgt_len_vec[2] > 0 && sgt_len_vec[3] > 0) {
       prior_sample_pq <- (exp(rnorm(nrow(fit_draws), p_prior[1], p_prior[2])) + p_q_mins[1]) * (exp(rnorm(nrow(fit_draws), q_prior[1], q_prior[2])) + p_q_mins[2])
     }
     if(sgt_len_vec[2] > 0 && sgt_len_vec[3] == 0) {
-      prior_sample_pq <- (exp(rnorm(nrow(fit_draws), p_prior[1], p_prior[2])) + p_q_mins[1]) * q_fixed
+      prior_sample_pq <- (rlnorm(nrow(fit_draws), p_prior[1], p_prior[2]) + p_q_mins[1]) * q_fixed
     }
     if(sgt_len_vec[2] == 0 && sgt_len_vec[3] > 0) {
-      prior_sample_pq <- (exp(rnorm(nrow(fit_draws), q_prior[1], q_prior[2])) + p_q_mins[2]) * p_fixed
+      prior_sample_pq <- (rlnorm(nrow(fit_draws), q_prior[1], q_prior[2]) + p_q_mins[2]) * p_fixed
     }
   }
 
