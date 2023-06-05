@@ -44,8 +44,13 @@ irf <- function(obj,
     }
 
     # R implementation:
-    e <- rep(0, M)
-    e[shock] <- shock_size
+    if(length(shock) =! 1 && length(shocks) != M) stop("'shock' misspecified.")
+    if(length(shock) == 1) {
+      e <- rep(0, M)
+      e[shock] <- shock_size
+    } else {
+      e <- shock
+    }
     irf_array <- array(NA, dim = c(M, horizon + 1, N))
     if(R_progress_bar) pb <- txtProgressBar(max = N, style = 3)
     for(sample_index in 1:N) {
