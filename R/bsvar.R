@@ -207,7 +207,7 @@ bsvar <- function(y,
       if(ans == "y") {
         try({
           cmdstanr::install_cmdstan(version = "2.29.2") # bsvar has been most thoroughly tested with 2.29.2
-          cmdstanr::set_cmdstan_path(file.path(cmdstanr::cmdstan_default_install_path(), chosen_cmdstan))
+          cmdstanr::set_cmdstan_path(file.path(cmdstanr::cmdstan_default_install_path(), "cmdstan-2.29.2"))
         })
       }
     } else {
