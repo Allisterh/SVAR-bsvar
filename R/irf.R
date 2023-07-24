@@ -44,7 +44,7 @@ irf <- function(obj,
     }
 
     # R implementation:
-    if(length(shock) != 1 && length(shocks) != M) stop("'shock' misspecified.")
+    if(length(shock) != 1 && length(shock) != M) stop("'shock' misspecified.")
     if(length(shock) == 1) {
       e <- rep(0, M)
       e[shock] <- shock_size
