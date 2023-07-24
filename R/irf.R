@@ -24,7 +24,7 @@ irf <- function(obj,
     } else {
       B <- extract(fit, pars = "B", apply_restriction = apply_restriction)[[1]]
     }
-    N <- dim(A)[1]
+    N <- N_original <- dim(A)[1]
     M <- dim(B)[2]
     if(!is.null(sub_N)) {
       if(sub_N < N) {
@@ -44,24 +44,31 @@ irf <- function(obj,
     }
 
     # R implementation:
-    if(length(shock) != 1 && length(shock) != M) stop("'shock' misspecified.")
-    if(length(shock) == 1) {
-      e <- rep(0, M)
-      e[shock] <- shock_size
-    } else {
-      e <- shock
+    shock_is_mat <- FALSE
+    if(!is.null(dim(shock))) {
+      if(nrow(shock) == N_original && ncol(shock) == M) {
+        shock_is_mat <- TRUE
+        if(N < N_original) shock <- shock[sub_i,]
+      }
     }
+    if(length(shock) != 1 && length(shock) != M && !shock_is_mat) stop("'shock' misspecified.")
+    e <- rep(0, M)
+    if(length(shock) == 1) e[shock] <- shock_size
+    if(length(shock) == M) e[] <- shock
     irf_array <- array(NA, dim = c(M, horizon + 1, N))
     if(R_progress_bar) pb <- txtProgressBar(max = N, style = 3)
     for(sample_index in 1:N) {
+      if(shock_is_mat) e[] <- shock[sample_index,]
       Bi <- B[sample_index,,]
       Ai <- A[sample_index,,]
       AAi <- stackA(t(Ai)) # utils.R
       if(fixed_impact > 0) {
-        e[shock] <- shock_size / Bi[fixed_impact, shock] / controls$varscale[shock]
-      } else {
-        e[shock] <- shock_size / controls$varscale[shock]
-      }
+        if(length(shock) == 1) e[shock] <- shock_size / Bi[fixed_impact, shock] / controls$varscale[shock]
+        if(length(shock) == M) e[shock] <- shock_size / Bi[fixed_impact, shock] / controls$varscale[shock]
+      } #else {
+        #if(length(shock) == 1) e[] <- shock / controls$varscale
+        #if(length(shock) == M) e[] <- shock / controls$varscale
+      #}
       for(h in 1:(horizon + 1)) {
         if(h == 1) {
           zero <- Bi %*% e
@@ -114,6 +121,7 @@ irf <- function(obj,
   }
   if(is.null(controls$col)) controls$col <- "tomato"
   if(is.null(controls$median)) controls$median <- FALSE
+  if(is.null(controls$bold_ylab)) controls$bold_ylab <- FALSE
   if(is.null(controls$prob)) controls$prob <- c(0.05, 0.16, 0.84, 0.95)
   if(is.null(controls$override_graph)) if(is.null(controls$mar)) controls$mar <- c(2, 2.5, 2, 1)
   if(is.null(controls$varnames)) {
@@ -121,7 +129,7 @@ irf <- function(obj,
   } else {
     varnames <- controls$varnames
   }
-  if(is.null(controls$shockname)) controls$shockname <- paste0("Shock ", shock)
+  if(is.null(controls$shockname)) controls$shockname <-  ifelse(length(shock) == 1, paste0("Shock ", shock, " "), "Shocks")
   if(is.null(controls$ylab)) controls$ylab <- ""
   if(is.null(controls$line)) controls$line <- 3
   if(is.null(controls$override_graph)) if(is.null(controls$mfrow)) controls$mfrow <- c(ceiling(sqrt(length(variables))), ceiling(sqrt(length(variables))))
@@ -140,7 +148,7 @@ irf <- function(obj,
     median_sub_irfs <- ts(apply(sub_irfs, 2, median), start = 0)
     quant <- function(column) quantile(column, probs = probs)
     quantiles_sub_irfs <- apply(sub_irfs, 2, quant)
-    if(is.null(controls$ylims)) {
+    if(is.null(controls$ylims) || length(shock) == 1) {
       ylim <- c(min(quantiles_sub_irfs), max(quantiles_sub_irfs))
     } else {
       if(controls$shock_rows) {
@@ -161,8 +169,10 @@ irf <- function(obj,
     }
     plot(unname(median_sub_irfs), lwd = 2, lty = 2, col = controls$col, yaxt = "n", xlab = "", ylab = "",
          main = main_text[main_index], ylim = ylim)
-    axis(side = 2, las = 2, mgp = c(3, 0.75, 0), ylab = ylab_text[ylab_index])
-    title(ylab = ylab_text[ylab_index], line = controls$line)
+    axis(side = 2, las = 2, mgp = c(3, 0.75, 0)) #, ylab = ylab_text[ylab_index])
+    if(!controls$bold_ylab) title(ylab = ylab_text[ylab_index], line = controls$line)
+    ylab_text_now <- ylab_text[ylab_index]
+    if(controls$bold_ylab) title(ylab = substitute(paste(bold(ylab_text_now))), line = controls$line)
     grid()
     fanplot::fan(data = quantiles_sub_irfs, data.type = "values", probs = probs,
                  start = 0, fan.col = colorRampPalette(c(controls$col, "white")),
