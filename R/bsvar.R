@@ -1023,34 +1023,39 @@ bsvar <- function(y,
   ### Initial guess for posterior variances ###
   #############################################
 
-  if(init_inv_metric[1] == "auto") {
-    inits_val <- init_fun()
-    inits_var <- c()
-    param_names <- names(mod$variables()$parameters)
-    for(i in 1:length(param_names)) {
-      param_name <- param_names[i]
-      param_inits <- unlist(inits_val[param_name])
-      if(length(param_inits) != 0) {
-        #if(param_name == "A") { # !!! (NB:  'A_restrictions')
-        #  inits_var <- c(inits_var, c(minnesota_sds(M, lags, hyper_fixed_values))^2)
-        #} else
-        if(param_name %in% c("garch_param", "relative_vol_raw")) {
-          if(param_name == "garch_param" && include_garch_groups) {
-            inits_var <- c(inits_var, rep(0.2^2, length(param_inits) -  garch_group_num))
+  try({
+    if(init_inv_metric[1] == "auto") {
+      inits_val <- init_fun()
+      inits_var <- c()
+      param_names <- names(mod$variables()$parameters)
+      for(i in 1:length(param_names)) {
+        param_name <- param_names[i]
+        param_inits <- unlist(inits_val[param_name])
+        if(length(param_inits) != 0) {
+          #if(param_name == "A") { # !!! (NB:  'A_restrictions')
+          #  inits_var <- c(inits_var, c(minnesota_sds(M, lags, hyper_fixed_values))^2)
+          #} else
+          if(param_name %in% c("garch_param", "relative_vol_raw")) {
+            if(param_name == "garch_param" && include_garch_groups) {
+              inits_var <- c(inits_var, rep(0.2^2, length(param_inits) -  garch_group_num))
+            } else {
+              inits_var <- c(inits_var, rep(0.2^2, length(param_inits) -  M))
+            }
+          } else if(param_name == "monthly_raw") {
+            inits_var <- c(inits_var, rep(0.2^2, length(param_inits) * (2 / 3)))
           } else {
-            inits_var <- c(inits_var, rep(0.2^2, length(param_inits) -  M))
+            inits_var <- c(inits_var, rep(0.2^2, length(param_inits)))
           }
-        } else if(param_name == "monthly_raw") {
-          inits_var <- c(inits_var, rep(0.2^2, length(param_inits) * (2 / 3)))
-        } else {
-          inits_var <- c(inits_var, rep(0.2^2, length(param_inits)))
         }
       }
+      init_inv_metric <- inits_var
+      if(metric == "dense_e") init_inv_metric <- diag(init_inv_metric)
     }
-    init_inv_metric <- inits_var
-    if(metric == "dense_e") init_inv_metric <- diag(init_inv_metric)
-  }
-
+  })
+  if(!is.null(init_inv_metric)) {
+    if(init_inv_metric[1] == "auto") init_inv_metric <- NULL
+  } 
+    
   ##########################
   ### Posterior sampling ###
   ##########################
