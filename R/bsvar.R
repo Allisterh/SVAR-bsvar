@@ -254,6 +254,14 @@ bsvar <- function(y,
   ### Interpolation of quarterly data ###
   #######################################
 
+  # HERE: Add attributes(y)$quarterly_diff: (If not NULL: If TRUE Then quarterly_diff <- 1) Else quarterly_diff <- 0
+  # (i) Remember to add quarterly_diff to standata below
+  # (ii) Add it as a bool data argument in Stan as well
+  # (iii) Also, add it as an argument to rebuild_y_raw
+  # (iv) Then implement within rebuild_y_raw:
+  #      - If quarterly_diff == 1 then take differences on monthly level of quarterly series
+  #      - Fill first values (otherwise left NA) with mean values of the differenced series (dirty-ish fix)
+
   if(!is.null(attributes(y)$quarterly)) {
     if(nrow(y) %% 3 != 0 || sum(is.na(y[,attributes(y)$quarterly])) > 0) {
       stop("For now quarterly data to be interpolated needs to be balanced, ",
@@ -867,6 +875,7 @@ bsvar <- function(y,
                    number_of_quarterly = number_of_quarterly,
                    quarterly_binary = quarterly_binary,
                    quarterly_sums = quarterly_sums,
+                   # HERE: quarterly_diff = quarterly_diff,
 
                    # Measurement errors
                    measurement_errors_num = measurement_errors_num,
@@ -1054,8 +1063,8 @@ bsvar <- function(y,
   })
   if(!is.null(init_inv_metric)) {
     if(init_inv_metric[1] == "auto") init_inv_metric <- NULL
-  } 
-    
+  }
+
   ##########################
   ### Posterior sampling ###
   ##########################
