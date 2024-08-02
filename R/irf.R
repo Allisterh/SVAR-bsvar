@@ -26,10 +26,13 @@ irf <- function(obj,
     }
     N <- N_original <- dim(A)[1]
     M <- dim(B)[2]
-    sub_i <- NULL
     if(!is.null(sub_N)) {
       if(sub_N < N) {
-        sub_i <- sample.int(N, sub_N, replace = TRUE)
+        if(length(sub_N) == 1) {
+          sub_i <- sample.int(N, sub_N, replace = TRUE)
+        } else {
+          sub_i <- sub_N
+        }
         if(attributes(fit)$standata$lags > 0) A <- A[sub_i,,]
         B <- B[sub_i,,]
         N <- dim(B)[1]
@@ -185,7 +188,6 @@ irf <- function(obj,
 
   class(irf_array) <- "bsvar_irf"
   attributes(irf_array)$shock <- shock
-  attributes(irf_array)$sub_i <- sub_i
   invisible(irf_array)
 }
 
