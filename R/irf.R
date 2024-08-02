@@ -26,6 +26,7 @@ irf <- function(obj,
     }
     N <- N_original <- dim(A)[1]
     M <- dim(B)[2]
+    sub_i <- NULL
     if(!is.null(sub_N)) {
       if(sub_N < N) {
         sub_i <- sample.int(N, sub_N, replace = TRUE)
@@ -184,6 +185,7 @@ irf <- function(obj,
 
   class(irf_array) <- "bsvar_irf"
   attributes(irf_array)$shock <- shock
+  attributes(irf_array)$sub_i <- sub_i
   invisible(irf_array)
 }
 
