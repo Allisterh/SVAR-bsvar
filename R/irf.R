@@ -27,7 +27,7 @@ irf <- function(obj,
     N <- N_original <- dim(A)[1]
     M <- dim(B)[2]
     if(!is.null(sub_N)) {
-      if(sub_N < N) {
+      if(max(sub_N) < N) {
         if(length(sub_N) == 1) {
           sub_i <- sample.int(N, sub_N, replace = TRUE)
         } else {
