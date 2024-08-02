@@ -140,13 +140,14 @@ functions {
     yx_raw[,(M + 1):(M + M*lags)] = xx_raw;
     return yx_raw;
   }
-  matrix rebuild_y_raw(matrix y_raw, array[] int quarterly_binary, vector quarterly_sums, array[] vector monthly_raw, int M, int NQ) {
+  matrix rebuild_y_raw(matrix y_raw, array[] int quarterly_binary, vector quarterly_sums, array[] vector monthly_raw, vector data_transformation_mean, vector data_transformation_scale, int M, int NQ) {
     matrix[rows(y_raw), M] y_new = y_raw;
     int count = 1;
     for(j in 1:M) {
       if(quarterly_binary[j] == 1) {
         for(i in 1:NQ) {
-          vector[3] sub = log(quarterly_sums[count] * monthly_raw[count]); // Log-levels assumed
+          vector[3] sub = log(quarterly_sums[count] * monthly_raw[count]); // Log-levels
+          sub = (sub - data_transformation_mean[j]) / data_transformation_scale[j]; // Data scaling
           y_new[(i * 3 - 2):(i * 3), j] = sub;
           count += 1;
         }
@@ -414,7 +415,7 @@ model {
       if (B_inverse == 1) shocks = (y - cmat - xA) * B';
     } else {
       if(number_of_quarterly > 0) {
-        y_raw_new = rebuild_y_raw(y_raw, quarterly_binary, quarterly_sums, monthly_raw, M, (N + lags) %/% 3);
+        y_raw_new = rebuild_y_raw(y_raw, quarterly_binary, quarterly_sums, monthly_raw, data_transformation_mean, data_transformation_scale, M, (N + lags) %/% 3);
       } else {
         y_raw_new = y_raw;
       }
@@ -767,7 +768,7 @@ generated quantities {
   if (number_of_quarterly > 0) {
     matrix[N + lags, M] y_raw_new;
     int count = 1;
-    y_raw_new = rebuild_y_raw(y_raw, quarterly_binary, quarterly_sums, monthly_raw, M, (N + lags) %/% 3);
+    y_raw_new = rebuild_y_raw(y_raw, quarterly_binary, quarterly_sums, monthly_raw, data_transformation_mean, data_transformation_scale, M, (N + lags) %/% 3);
     for(j in 1:M) {
       if(quarterly_binary[j] == 1) {
         yq[:, count] = y_raw_new[:, j];
@@ -815,7 +816,7 @@ generated quantities {
       if (B_inverse == 1) shocks = (y - cmat - xA) * B';
     } else {
       if(number_of_quarterly > 0) {
-        y_raw_new = rebuild_y_raw(y_raw, quarterly_binary, quarterly_sums, monthly_raw, M, (N + lags) %/% 3);
+        y_raw_new = rebuild_y_raw(y_raw, quarterly_binary, quarterly_sums, monthly_raw, data_transformation_mean, data_transformation_scale, M, (N + lags) %/% 3);
       } else {
         y_raw_new = y_raw;
       }

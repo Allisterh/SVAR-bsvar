@@ -15,7 +15,18 @@
 #' @seealso \code{\link[rstan]{extract}}
 #' @export
 extract <- function(object, pars, apply_restriction = TRUE) {
-  out <- rstan::extract(object, pars)
+  out_permuted <- out <- rstan::extract(object, pars)
+  for(i in 1:length(out_permuted)) {
+    not_permuted <- rstan::extract(object, pars[i], permuted = FALSE)
+    chains <- dim(not_permuted)[2]
+    iters <- dim(not_permuted)[1]
+    for(chain in 1:chains) {
+      for(iter in 1:iters) {
+        if(length(dim(out[[i]])) == 3) out[[i]][(chain - 1) * iters + iter,,] <- not_permuted[iter, chain,]
+        if(length(dim(out[[i]])) == 2) out[[i]][(chain - 1) * iters + iter,] <- not_permuted[iter, chain,]
+      }
+    }
+  }
   res <- attributes(object)$restriction
   drop <- which(res == 1)
   if(apply_restriction && !is.null(res)) {
